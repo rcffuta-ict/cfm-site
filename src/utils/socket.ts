@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
-const base = "192.168.138.233:3020";
+const mainUrl = "10.217.52.234";
+const base = `${mainUrl}:3020`;
 
 const connect = (path:string)=>{
     return io( `${base}/${path}`, {
