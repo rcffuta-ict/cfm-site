@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const mainUrl = "10.217.52.234";
+const mainUrl = "192.168.137.242";
 const base = `${mainUrl}:3020`;
 
 const connect = (path:string)=>{
