@@ -109,7 +109,7 @@ export async function loginAction(formData: FormData) {
 
         if (!existing) {
             raffleId = await generateRaffleId(event.id);
-            await supabase.from("event_registrations").insert({
+            const { error: insertError } = await supabase.from("event_registrations").insert({
                 event_id: event.id,
                 first_name: fullProfile.profile.firstName,
                 last_name: fullProfile.profile.lastName,
@@ -120,6 +120,10 @@ export async function loginAction(formData: FormData) {
                 raffle_id: raffleId,
                 is_rcf_member: true,
             });
+            if (insertError) {
+                console.error("[loginAction] Event Registration Insert Error:", insertError);
+                return { success: false, error: insertError.message || "Failed to save registration." };
+            }
             broadcastOracleEvent("stats:update", {}).catch(() => {});
         }
 

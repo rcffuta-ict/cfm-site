@@ -52,7 +52,7 @@ export default function LoginPage() {
                     eventDate: result.data.eventDate,
                 });
                 router.push("/");
-                router.refresh();
+                // router.refresh();
             })();
         });
     }
