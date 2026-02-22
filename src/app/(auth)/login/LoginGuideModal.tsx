@@ -47,7 +47,8 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
                 <div className="space-y-4 text-white/80 text-sm leading-relaxed">
                     <p>
                         Welcome! To get your Raffle ID, you need to sign in
-                        using your existing credentials from the{" "}
+                        using your <strong>Email or Phone number</strong> and
+                        <strong> Password</strong> from the{" "}
                         <strong>RCF FUTA ICT Portal</strong> (
                         <a
                             href="https://ict.rcffuta.com"
@@ -69,10 +70,28 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
                             in the Oracle selection.
                         </p>
                     </div>
-                    <p>
-                        Simply enter the same email (or phone number) and
-                        password you use on the main portal to continue.
-                    </p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left space-y-3 mt-4">
+                        <h3 className="font-semibold text-white flex items-center gap-2">
+                            <span>⚠️</span> Important Requirements
+                        </h3>
+                        <ul className="list-disc pl-5 space-y-2 text-white/90">
+                            <li>
+                                You must have your{" "}
+                                <strong>Level Information</strong> up to date.
+                            </li>
+                            <li>
+                                You must have your <strong>Gender</strong>{" "}
+                                specified in your profile.
+                            </li>
+                        </ul>
+                        <p className="text-sm mt-3 text-red-300">
+                            <i>
+                                Any necessary updates needed to be made on your
+                                information should be done on the{" "}
+                                <b>ICT portal</b>.
+                            </i>
+                        </p>
+                    </div>
                 </div>
 
                 <button onClick={onClose} className="login-btn mt-6">

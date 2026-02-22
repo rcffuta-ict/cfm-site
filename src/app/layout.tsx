@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import DeviceWrapper from "@/src/components/common/DeviceWrapper";
+import EventClosed from "@/src/components/common/EventClosed";
+import Footer from "@/src/components/common/Footer";
+import { getAdminClient } from "@/src/lib/supabase/server";
 import "../styles/style.scss";
 
 export const metadata: Metadata = {
@@ -9,15 +12,34 @@ export const metadata: Metadata = {
     icons: { icon: "/images/Logo/logo.png" },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    // ── Check if the event is active ─────────────────────────────────────────
+    const supabase = getAdminClient();
+    const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
+
+    const { data: event } = await supabase
+        .from("events")
+        .select("is_active")
+        .eq("slug", eventSlug)
+        .maybeSingle();
+
+    const isLive = event?.is_active ?? false;
+
     return (
         <html lang="en">
             <body>
-                <DeviceWrapper>{children}</DeviceWrapper>
+                {!isLive ? (
+                    <EventClosed />
+                ) : (
+                    <div className="flex flex-col min-h-[100dvh]">
+                        <DeviceWrapper>{children}</DeviceWrapper>
+                        <Footer />
+                    </div>
+                )}
                 <Toaster
                     position="top-right"
                     toastOptions={{

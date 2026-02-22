@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createBrowserClient } from "@/src/lib/supabase/client";
+import { IctLogo } from "@/src/components/common/IctLogo";
 
 interface LevelCount {
     level: string;
@@ -96,7 +97,14 @@ export default function StatsPage() {
             <div className="stats-glow stats-glow--blue" />
 
             {/* Header */}
-            <div className="stats-header">
+            <div className="stats-header relative">
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+                    <IctLogo
+                        variant="white"
+                        width={80}
+                        className="opacity-70"
+                    />
+                </div>
                 <div className="stats-header__logo">
                     <img
                         src="/images/Logo/logo.png"

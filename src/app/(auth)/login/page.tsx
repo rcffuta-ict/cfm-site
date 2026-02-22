@@ -75,7 +75,7 @@ export default function LoginPage() {
 
                 <h1 className="login-title">Combined Family Meeting</h1>
                 <p className="login-subtitle mb-2">
-                    Sign in to get your Raffle ID
+                    Sign in to get your Oracle ID
                 </p>
 
                 <div className="flex justify-center mb-6">
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 </form>
 
                 <p className="login-footer">
-                    Only RCF FUTA members (100L–500L) can access this. <br />
+                    Only for RCF FUTA members (100L–500L). <br />
                     Contact ICT if you have issues signing in.
                 </p>
             </div>

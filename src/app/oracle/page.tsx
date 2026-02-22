@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import OracleSlotMachine from "@/src/components/OracleSlotMachine";
 import { displayLevelBetter } from "@/src/lib/utils";
+import { IctLogo } from "@/src/components/common/IctLogo";
 
 interface SelectedPerson {
     firstName: string;
@@ -131,6 +132,11 @@ export default function OraclePage() {
                     </div>
                 </div>
             )}
+
+            {/* ICT Logo Overlay */}
+            <div className="absolute bottom-6 right-6 opacity-30 hover:opacity-100 transition-opacity duration-300 z-50">
+                <IctLogo variant="white" width={80} />
+            </div>
         </div>
     );
 }
