@@ -1,11 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-/** Position slug whose holder is treated as the app admin. */
-export const ADMIN_POSITION_SLUG = "ict-coord";
+/**
+ * The leadership position slug whose holder is the app admin, from the `ADMIN`
+ * env var (defaults to "ict-coord"). Change it in env and the holder of that
+ * position (in the active tenure) becomes admin — everything else is resolved
+ * at runtime.
+ */
+export function getAdminPositionSlug(): string {
+    return (process.env.ADMIN || "ict-coord").trim().toLowerCase();
+}
 
 /**
- * The admin is the leader holding the leadership position with slug
- * `ict-coord` in the active tenure.
+ * A profile is admin if it holds the configured admin leadership position
+ * (slug = `ADMIN`) in the active tenure.
  */
 export async function isAdmin(
     supabase: SupabaseClient,
@@ -25,7 +32,7 @@ export async function isAdmin(
         .select("id, position:leadership_positions!inner(slug)")
         .eq("profile_id", profileId)
         .eq("tenure_id", tenure.id)
-        .eq("position.slug", ADMIN_POSITION_SLUG)
+        .eq("position.slug", getAdminPositionSlug())
         .maybeSingle();
 
     return !!data;
