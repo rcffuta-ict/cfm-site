@@ -4,6 +4,7 @@ import DeviceWrapper from "@/src/components/common/DeviceWrapper";
 import EventClosed from "@/src/components/common/EventClosed";
 import Footer from "@/src/components/common/Footer";
 import { getAdminClient } from "@/src/lib/supabase/server";
+import { isEventLive } from "@/src/lib/event";
 import "../styles/style.scss";
 
 export const metadata: Metadata = {
@@ -11,22 +12,17 @@ export const metadata: Metadata = {
     description: "Powered by RCF FUTA ICT",
 };
 
+// The live / not-live switch (event.is_active) is evaluated per request, so the
+// app reflects it without a redeploy — never statically frozen at build time.
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    // ── Check if the event is active ─────────────────────────────────────────
-    const supabase = getAdminClient();
-    const eventSlug = process.env.CFM_EVENT_SLUG || "cfm-rcffuta";
-
-    const { data: event } = await supabase
-        .from("events")
-        .select("is_active")
-        .eq("slug", eventSlug)
-        .maybeSingle();
-
-    const isLive = event?.is_active ?? false;
+    // ── Live / not-live switch: the configured event's is_active flag ────────
+    const isLive = await isEventLive(getAdminClient());
 
     return (
         <html lang="en">

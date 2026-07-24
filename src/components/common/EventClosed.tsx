@@ -39,7 +39,7 @@ export default function EventClosed() {
                         coordinator.
                     </p>
 
-                    <a
+                    {/* <a
                         href="https://ict.rcffuta.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -59,7 +59,7 @@ export default function EventClosed() {
                                 d="M14 5l7 7m0 0l-7 7m7-7H3"
                             />
                         </svg>
-                    </a>
+                    </a> */}
                 </div>
             </div>
 

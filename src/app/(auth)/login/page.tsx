@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { loginAction } from "./actions";
@@ -15,7 +14,7 @@ export default function LoginPage() {
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState("");
     const [showGuide, setShowGuide] = useState(false);
-    const [showToken, setShowToken] = useState(false);
+    // const [showToken, setShowToken] = useState(false);
 
     // If the client-side store already has a valid session, go to dashboard
     useEffect(() => {
@@ -52,7 +51,6 @@ export default function LoginPage() {
                     eventDate: result.data.eventDate,
                 });
                 router.push("/");
-                // router.refresh();
             })();
         });
     }
@@ -69,7 +67,6 @@ export default function LoginPage() {
                         alt="RCF FUTA"
                         width={150}
                         height={150}
-                        // className="w-20 h-20"
                     />
                 </div>
 
@@ -80,6 +77,7 @@ export default function LoginPage() {
 
                 <div className="flex justify-center mb-6">
                     <button
+                        type="button"
                         onClick={() => setShowGuide(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/90 rounded-full text-sm font-medium transition-colors border border-white/10 backdrop-blur-sm"
                     >
@@ -87,7 +85,12 @@ export default function LoginPage() {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="login-form">
+                {/* Added autoComplete="off" at the form level */}
+                <form
+                    onSubmit={handleSubmit}
+                    className="login-form"
+                    autoComplete="one-time-code"
+                >
                     <div className="login-field">
                         <label htmlFor="identifier">
                             Email or Phone Number
@@ -96,10 +99,12 @@ export default function LoginPage() {
                             id="identifier"
                             name="identifier"
                             type="text"
-                            autoComplete="username"
+                            autoComplete="one-time-code"
                             placeholder="e.g. you@futa.edu.ng or 08012345678"
                             required
                             disabled={isPending}
+                            data-lpignore="true"
+                            data-1p-ignore="true"
                         />
                     </div>
 
@@ -109,20 +114,15 @@ export default function LoginPage() {
                             <input
                                 id="token"
                                 name="token"
-                                type={showToken ? "text" : "password"}
+                                type={"text"}
                                 autoComplete="one-time-code"
                                 placeholder="Token from your level rep"
                                 required
                                 disabled={isPending}
                                 className="w-full pr-10"
+                                data-lpignore="true"
+                                data-1p-ignore="true"
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowToken(!showToken)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
-                            >
-                                {showToken ? "Hide" : "Show"}
-                            </button>
                         </div>
                     </div>
 

@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAdminClient, broadcastOracleEvent } from "@/src/lib/supabase/server";
 import { getFullProfile } from "@/src/lib/profile";
+import { getCfmEvent } from "@/src/lib/event";
 import { resolveLevelFromClassSet } from "@/src/lib/level";
 import { setSessionCookie } from "@/src/lib/auth/session";
 
@@ -139,16 +140,15 @@ export async function loginAction(formData: FormData) {
         };
         const email = fullProfile.profile.email || match.email || "";
 
-        // Step 5: Auto-register for the CFM event.
-        const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
-        const { data: event } = await supabase
-            .from("events")
-            .select("id, title, date")
-            .eq("slug", eventSlug)
-            .maybeSingle();
-
+        // Step 5: Auto-register for the CFM event (only while it's live).
+        const event = await getCfmEvent(supabase);
         if (!event)
             return { success: false, error: "Event not found. Contact admin." };
+        if (!event.is_active)
+            return {
+                success: false,
+                error: "The event is not live yet. Please check back later.",
+            };
 
         const { data: existing } = await supabase
             .from("event_registrations")

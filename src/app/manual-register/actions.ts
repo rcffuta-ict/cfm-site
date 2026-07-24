@@ -1,6 +1,7 @@
 "use server";
 
 import { getAdminClient, broadcastOracleEvent } from "@/src/lib/supabase/server";
+import { getCfmEvent } from "@/src/lib/event";
 
 const RAFFLE_BASE = parseInt(process.env.RAFFLE_ID_BASE || "42700", 10);
 
@@ -42,15 +43,15 @@ export async function manualRegisterAction(formData: FormData) {
     try {
         const supabase = getAdminClient();
         
-        const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
-        const { data: event } = await supabase
-            .from("events")
-            .select("id, title")
-            .eq("slug", eventSlug)
-            .maybeSingle();
-
+        const event = await getCfmEvent(supabase);
         if (!event) {
             return { success: false, error: "Event not found. Contact admin." };
+        }
+        if (!event.is_active) {
+            return {
+                success: false,
+                error: "The event is not live yet. Please check back later.",
+            };
         }
 
         // if an email is provided we check if they are already registered
