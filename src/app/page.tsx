@@ -26,8 +26,8 @@ export default function HomePage() {
                     <div className="preloader__glow preloader__glow--blue" />
                     <div className="preloader__content">
                         <img
-                            src="/images/Logo/logo.png"
-                            alt="RCF FUTA"
+                            src="/logo/cfm-icon.png"
+                            alt="RCF FUTA CFM"
                             className="preloader__logo"
                         />
                         <p className="preloader__text">

@@ -1,20 +1,19 @@
 import { redirect } from "next/navigation";
 import { getSessionCookie } from "@/src/lib/auth/session";
+import { getAdminClient } from "@/src/lib/supabase/server";
+import { isAdmin } from "@/src/lib/admin";
 import OracleController from "@/src/components/OracleController";
 
 export default async function OracleControllerPage() {
     const session = await getSessionCookie();
 
-    if (!session?.email) {
+    if (!session?.pid) {
         // Route handler clears the cookie (can't do it from a page server component)
         redirect("/api/auth/logout");
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || "")
-        .split(",")
-        .map((e) => e.trim().toLowerCase());
-
-    if (!adminEmails.includes(session.email.toLowerCase())) {
+    const supabase = getAdminClient();
+    if (!(await isAdmin(supabase, session.pid))) {
         redirect("/");
     }
 

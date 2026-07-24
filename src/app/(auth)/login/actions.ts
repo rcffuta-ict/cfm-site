@@ -1,8 +1,8 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { RcfIctClient } from "@rcffuta/ict-lib/server";
 import { getAdminClient, broadcastOracleEvent } from "@/src/lib/supabase/server";
+import { getFullProfile } from "@/src/lib/profile";
 import { resolveLevelFromClassSet } from "@/src/lib/level";
 import { setSessionCookie } from "@/src/lib/auth/session";
 
@@ -127,10 +127,9 @@ export async function loginAction(formData: FormData) {
                 error: "Could not determine the level for this token. Contact ICT.",
             };
 
-        // Step 4: Full profile via ict-lib (name, unit, etc.), with the
-        // token-authenticated level taking precedence over any stored level.
-        const rcf = RcfIctClient.fromEnv();
-        const fullProfile = await rcf.member.getFullProfile(match.id);
+        // Step 4: Full profile straight from the database (name, unit, etc.),
+        // with the token-authenticated level taking precedence over any stored level.
+        const fullProfile = await getFullProfile(supabase, match.id);
         if (!fullProfile)
             return { success: false, error: "Profile not found. Contact admin." };
 

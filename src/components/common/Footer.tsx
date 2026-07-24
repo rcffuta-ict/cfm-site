@@ -19,7 +19,7 @@ export default function Footer() {
                 <div className="flex items-center gap-2">
                     <span>Powered by RCF FUTA ICT Team</span>
                     {/* <Image
-                        src="/images/Logo/logo.png"
+                        src="/logo/cfm-icon.png"
                         alt="RCF FUTA"
                         width={24}
                         height={24}

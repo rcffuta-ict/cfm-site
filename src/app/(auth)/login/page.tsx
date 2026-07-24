@@ -65,7 +65,7 @@ export default function LoginPage() {
             <div className="login-card">
                 <div className="login-logo max-w-5xl flex justify-center">
                     <Image
-                        src="/images/Logo/logo.png"
+                        src="/logo/cfm-logo.png"
                         alt="RCF FUTA"
                         width={150}
                         height={150}

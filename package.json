@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@rcffuta/ict-lib": "^3.3.4",
     "@supabase/supabase-js": "^2.49.1",
     "@types/node": "20.2.0",
     "@types/react": "^19.0.0",

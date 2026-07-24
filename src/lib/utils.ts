@@ -1,4 +1,4 @@
-import { FullUserProfile } from "@rcffuta/ict-lib";
+import type { FullUserProfile } from "@/src/lib/types";
 
 export function displayLevelBetter(level: FullUserProfile['academics']['currentLevel']) {
   switch (level) {

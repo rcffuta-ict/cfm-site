@@ -20,7 +20,7 @@ export default function EventClosed() {
                         <div className="absolute inset-0 bg-white/20 rounded-full blur-xl scale-110 group-hover:scale-125 transition-transform duration-500" />
                         <div className="relative bg-[#0A1028] border border-white/20 p-5 rounded-full shadow-xl">
                             <Image
-                                src="/images/Logo/logo.png"
+                                src="/logo/cfm-icon.png"
                                 alt="RCF FUTA"
                                 width={64}
                                 height={64}
@@ -66,7 +66,7 @@ export default function EventClosed() {
             <div className="mt-12 relative z-10 flex items-center gap-2 text-white/40 text-sm font-medium">
                 <span>Powered by</span>
                 {/* <Image
-                    src="/images/Logo/logo.png"
+                    src="/logo/cfm-icon.png"
                     alt="RCF FUTA"
                     width={20}
                     height={20}

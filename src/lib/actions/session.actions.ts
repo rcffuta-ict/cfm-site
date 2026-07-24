@@ -1,7 +1,7 @@
 "use server";
 
-import { RcfIctClient } from "@rcffuta/ict-lib/server";
 import { getAdminClient } from "@/src/lib/supabase/server";
+import { getFullProfile } from "@/src/lib/profile";
 import { getSessionCookie } from "@/src/lib/auth/session";
 import type { SessionData } from "@/src/lib/stores/profile.store";
 
@@ -14,8 +14,8 @@ export async function getSessionAction(): Promise<{
         const payload = await getSessionCookie();
         if (!payload) return { success: false, error: "No valid session." };
 
-        const rcf = RcfIctClient.fromEnv();
-        const fullProfile = await rcf.member.getFullProfile(payload.pid);
+        const supabase = getAdminClient();
+        const fullProfile = await getFullProfile(supabase, payload.pid);
         if (!fullProfile) return { success: false, error: "Profile not found." };
 
         // The level was authenticated by the invite token at login; keep it.
@@ -23,8 +23,6 @@ export async function getSessionAction(): Promise<{
             ...fullProfile,
             academics: { ...fullProfile.academics, currentLevel: payload.level },
         };
-
-        const supabase = getAdminClient();
         const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
         const { data: event } = await supabase
             .from("events")

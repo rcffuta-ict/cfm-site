@@ -52,7 +52,7 @@ export default function UserDashboard() {
             <header className="dash-header">
                 <div className="dash-logo">
                     <img
-                        src="/images/Logo/logo.png"
+                        src="/logo/cfm-icon.png"
                         alt="RCF FUTA"
                         width={70}
                         height={60}

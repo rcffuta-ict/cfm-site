@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 /**
  * Resolve the academic level for a class set.
  *
- * Mirrors the calculation used by ict-lib's getFullProfile:
+ * Mirrors the level calculation in getFullProfile:
  *   level = (activeSessionYear - entryYear + 1) * 100
  * with `level_override` on the class set taking precedence (used for
  * foundation / non-standard sets).

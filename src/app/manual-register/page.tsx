@@ -52,7 +52,7 @@ export default function ManualRegisterPage() {
             <div className="login-card w-full max-w-lg">
                 <div className="login-logo flex justify-center mb-6">
                     <Image
-                        src="/images/Logo/logo.png"
+                        src="/logo/cfm-icon.png"
                         alt="RCF FUTA"
                         width={100}
                         height={100}

@@ -107,7 +107,7 @@ export default function StatsPage() {
                 </div>
                 <div className="stats-header__logo">
                     <img
-                        src="/images/Logo/logo.png"
+                        src="/logo/cfm-icon.png"
                         alt="RCF FUTA"
                         width={56}
                         height={56}

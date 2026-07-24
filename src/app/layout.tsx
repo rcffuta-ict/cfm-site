@@ -9,7 +9,6 @@ import "../styles/style.scss";
 export const metadata: Metadata = {
     title: "Combined Family Meeting — Redeemed Christian Fellowship FUTA Chapter",
     description: "Powered by RCF FUTA ICT",
-    icons: { icon: "/images/Logo/logo.png" },
 };
 
 export default async function RootLayout({
@@ -19,7 +18,7 @@ export default async function RootLayout({
 }) {
     // ── Check if the event is active ─────────────────────────────────────────
     const supabase = getAdminClient();
-    const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
+    const eventSlug = process.env.CFM_EVENT_SLUG || "cfm-rcffuta";
 
     const { data: event } = await supabase
         .from("events")

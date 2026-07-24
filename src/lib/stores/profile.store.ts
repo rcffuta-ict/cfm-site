@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { FullUserProfile } from "@rcffuta/ict-lib";
+import type { FullUserProfile } from "@/src/lib/types";
 
 export type SessionData = {
     profile: FullUserProfile;
