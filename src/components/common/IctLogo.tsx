@@ -23,8 +23,8 @@ export function IctLogo({
 }: IctLogoProps) {
     const src =
         variant === "colored"
-            ? "/logo/logo-512x297_(1).png"
-            : "/logo/logo-alt-511x291_.png";
+            ? "/logo/ict-logo-dark.png"
+            : "/logo/ict-logo-white.png";
 
     const LogoImage = (
         <div className={clsx("relative flex items-center", className)}>

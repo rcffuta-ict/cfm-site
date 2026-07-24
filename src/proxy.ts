@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function proxy(request: NextRequest) {
-    const token = request.cookies.get("sb-access-token")?.value;
+    // Presence check only — the signed cookie is fully verified server-side
+    // (getSessionAction). We can't import the crypto verifier into edge
+    // middleware, so we just gate on the cookie existing.
+    const token = request.cookies.get("cfm-session")?.value;
     const { pathname } = request.nextUrl;
 
     // ── Always-public pages ──────────────────────────────────────────────────

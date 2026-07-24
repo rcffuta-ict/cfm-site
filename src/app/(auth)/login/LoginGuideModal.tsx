@@ -46,28 +46,20 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
 
                 <div className="space-y-4 text-white/80 text-sm leading-relaxed">
                     <p>
-                        Welcome! To get your Raffle ID, you need to sign in
-                        using your <strong>Email or Phone number</strong> and
-                        <strong> Password</strong> from the{" "}
-                        <strong>RCF FUTA ICT Portal</strong> (
-                        <a
-                            href="https://ict.rcffuta.com"
-                            target="_blank"
-                            className="text-blue-400 hover:underline"
-                        >
-                            ict.rcffuta.com
-                        </a>
-                        ).
+                        Welcome! To get your Raffle ID, sign in using your{" "}
+                        <strong>Email or Phone number</strong> and the{" "}
+                        <strong>Level Invite Token</strong> shared by your{" "}
+                        <strong>Level Coordinator</strong>.
                     </p>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left">
                         <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                            <span>🔒</span> Secure Information Sourcing
+                            <span>🔒</span> How your level is verified
                         </h3>
                         <p>
-                            We securely source your information directly from
-                            the ICT portal. This ensures that only verified RCF
-                            FUTA members can participate and maintains fairness
-                            in the Oracle selection.
+                            Each level has its own invite token. Signing in with
+                            your level&apos;s token confirms which level you
+                            belong to, so the Oracle selection stays fair and
+                            only RCF FUTA members take part.
                         </p>
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left space-y-3 mt-4">
@@ -76,19 +68,19 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
                         </h3>
                         <ul className="list-disc pl-5 space-y-2 text-white/90">
                             <li>
-                                You must have your{" "}
-                                <strong>Level Information</strong> up to date.
+                                Use the email or phone number registered with
+                                RCF FUTA.
                             </li>
                             <li>
-                                You must have your <strong>Gender</strong>{" "}
-                                specified in your profile.
+                                Get the correct{" "}
+                                <strong>Level Invite Token</strong> from your
+                                level coordinator.
                             </li>
                         </ul>
                         <p className="text-sm mt-3 text-red-300">
                             <i>
-                                Any necessary updates needed to be made on your
-                                information should be done on the{" "}
-                                <b>ICT portal</b>.
+                                Don&apos;t have an account or token? Reach out to
+                                your <b>Level Coordinator</b> or the ICT team.
                             </i>
                         </p>
                     </div>

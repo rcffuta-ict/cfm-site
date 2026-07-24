@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { RcfIctClient } from "@rcffuta/ict-lib/server";
+import { clearSessionCookie } from "@/src/lib/auth/session";
 
 // POST /api/auth/logout — called by the client logout button
 export async function POST() {
@@ -13,17 +12,12 @@ export async function GET() {
 }
 
 async function clearAndRedirect() {
-    try {
-        const rcf = RcfIctClient.fromEnv();
-        await rcf.auth.logout();
-    } catch (_) {}
-
-    const cookieStore = await cookies();
-    const opts = { path: "/", maxAge: 0 };
-    cookieStore.set("sb-access-token", "", opts);
-    cookieStore.set("sb-refresh-token", "", opts);
+    await clearSessionCookie();
 
     return NextResponse.redirect(
-        new URL("/login", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000")
+        new URL(
+            "/login",
+            process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+        )
     );
 }

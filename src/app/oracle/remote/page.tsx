@@ -1,21 +1,12 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAdminClient } from "@/src/lib/supabase/server";
+import { getSessionCookie } from "@/src/lib/auth/session";
 import OracleController from "@/src/components/OracleController";
 
 export default async function OracleControllerPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("sb-access-token")?.value;
+    const session = await getSessionCookie();
 
-    if (!token) redirect("/login");
-
-    const supabase = getAdminClient();
-    const {
-        data: { user },
-        error,
-    } = await supabase.auth.getUser(token);
-    if (error || !user?.email) {
-        // Route handler clears cookies (can't do it from a page server component)
+    if (!session?.email) {
+        // Route handler clears the cookie (can't do it from a page server component)
         redirect("/api/auth/logout");
     }
 
@@ -23,7 +14,7 @@ export default async function OracleControllerPage() {
         .split(",")
         .map((e) => e.trim().toLowerCase());
 
-    if (!adminEmails.includes(user!.email!.toLowerCase())) {
+    if (!adminEmails.includes(session.email.toLowerCase())) {
         redirect("/");
     }
 

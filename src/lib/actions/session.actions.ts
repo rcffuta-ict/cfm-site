@@ -1,8 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { RcfIctClient } from "@rcffuta/ict-lib/server";
 import { getAdminClient } from "@/src/lib/supabase/server";
+import { getSessionCookie } from "@/src/lib/auth/session";
 import type { SessionData } from "@/src/lib/stores/profile.store";
 
 export async function getSessionAction(): Promise<{
@@ -11,23 +11,20 @@ export async function getSessionAction(): Promise<{
     error?: string;
 }> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("sb-access-token")?.value;
-
-        if (!token) return { success: false, error: "No session token." };
-
-        const supabase = getAdminClient();
-        const {
-            data: { user },
-            error,
-        } = await supabase.auth.getUser(token);
-
-        if (error || !user) return { success: false, error: "Invalid or expired session." };
+        const payload = await getSessionCookie();
+        if (!payload) return { success: false, error: "No valid session." };
 
         const rcf = RcfIctClient.fromEnv();
-        const profile = await rcf.member.getFullProfile(user.id);
-        if (!profile) return { success: false, error: "Profile not found." };
+        const fullProfile = await rcf.member.getFullProfile(payload.pid);
+        if (!fullProfile) return { success: false, error: "Profile not found." };
 
+        // The level was authenticated by the invite token at login; keep it.
+        const profile = {
+            ...fullProfile,
+            academics: { ...fullProfile.academics, currentLevel: payload.level },
+        };
+
+        const supabase = getAdminClient();
         const eventSlug = process.env.CFM_EVENT_SLUG || "cfm";
         const { data: event } = await supabase
             .from("events")
@@ -41,7 +38,7 @@ export async function getSessionAction(): Promise<{
                 .from("event_registrations")
                 .select("raffle_id")
                 .eq("event_id", event.id)
-                .eq("email", user.email ?? "")
+                .eq("email", payload.email)
                 .maybeSingle();
             raffleId = reg?.raffle_id ?? null;
         }

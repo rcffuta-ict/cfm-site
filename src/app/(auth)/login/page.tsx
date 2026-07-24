@@ -15,7 +15,7 @@ export default function LoginPage() {
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState("");
     const [showGuide, setShowGuide] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const [showToken, setShowToken] = useState(false);
 
     // If the client-side store already has a valid session, go to dashboard
     useEffect(() => {
@@ -104,24 +104,24 @@ export default function LoginPage() {
                     </div>
 
                     <div className="login-field relative group">
-                        <label htmlFor="password">Password</label>
+                        <label htmlFor="token">Level Invite Token</label>
                         <div className="relative">
                             <input
-                                id="password"
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                autoComplete="current-password"
-                                placeholder="Your password"
+                                id="token"
+                                name="token"
+                                type={showToken ? "text" : "password"}
+                                autoComplete="one-time-code"
+                                placeholder="Token from your level rep"
                                 required
                                 disabled={isPending}
                                 className="w-full pr-10"
                             />
                             <button
                                 type="button"
-                                onClick={() => setShowPassword(!showPassword)}
+                                onClick={() => setShowToken(!showToken)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
                             >
-                                {showPassword ? "Hide" : "Show"}
+                                {showToken ? "Hide" : "Show"}
                             </button>
                         </div>
                     </div>
