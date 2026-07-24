@@ -1,39 +1,48 @@
 "use client";
 
 import Link from "next/link";
+import { Home } from "lucide-react";
+import { Ambient } from "@/src/components/common/Ambient";
+import { CfmIcon } from "@/src/components/common/Brand";
+import { Button } from "@/src/components/ui/button";
 
 export default function NotFoundPage() {
     return (
-        <div className="nf-page">
-            <div className="nf-page__glow nf-page__glow--purple" />
-            <div className="nf-page__glow nf-page__glow--blue" />
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
+            <Ambient />
 
-            <div className="nf-page__content">
-                <div className="nf-digits">
-                    <span className="nf-digit" style={{ animationDelay: "0s" }}>
-                        4
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white/[0.04] px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground animate-floaty">
+                404 · it&apos;s giving lost 💀
+            </span>
+
+            <div className="flex items-end gap-2">
+                <span className="text-[clamp(5rem,20vw,11rem)] font-black leading-none text-gradient">
+                    4
+                </span>
+                <span className="relative animate-spin-slow">
+                    <span className="absolute -inset-2 rounded-full opacity-40 blur-md ring-conic" />
+                    <span className="relative rounded-full border border-border bg-background p-3">
+                        <CfmIcon width={80} height={80} priority />
                     </span>
-                    <span
-                        className="nf-digit nf-digit--zero"
-                        style={{ animationDelay: "0.12s" }}
-                    >
-                        0
-                    </span>
-                    <span
-                        className="nf-digit"
-                        style={{ animationDelay: "0.24s" }}
-                    >
-                        4
-                    </span>
-                </div>
-                <p className="nf-page__title">Page Not Found</p>
-                <p className="nf-page__sub">
-                    Looks like this page took the wrong turn at the Oracle…
-                </p>
-                <Link href="/" className="nf-btn">
-                    ← Back to Home
-                </Link>
+                </span>
+                <span className="text-[clamp(5rem,20vw,11rem)] font-black leading-none text-gradient">
+                    4
+                </span>
             </div>
+
+            <h1 className="mt-6 text-2xl font-extrabold tracking-tight">
+                This page ghosted us 👻
+            </h1>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                No cap — the link you followed isn&apos;t on the guest list.
+                Let&apos;s get you back to the vibes.
+            </p>
+
+            <Button asChild variant="brand" size="lg" className="mt-8">
+                <Link href="/">
+                    <Home /> Take me home ✨
+                </Link>
+            </Button>
         </div>
     );
 }

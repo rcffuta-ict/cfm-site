@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSpinSound } from "@/src/hooks/useSpinSound";
+import { cn } from "@/src/lib/utils";
 
 interface ReelProps {
     targetDigit: number | null;
@@ -48,9 +49,24 @@ function Reel({ targetDigit, delay, isSpinning }: ReelProps) {
 
     return (
         <div
-            className={`oracle-reel ${isRolling ? "oracle-reel--rolling" : ""} ${settled ? "oracle-reel--settled" : ""}`}
+            className={cn(
+                "relative flex h-[clamp(120px,26vw,380px)] w-[clamp(82px,16vw,260px)] items-center justify-center overflow-hidden rounded-2xl border-2 bg-card/70 backdrop-blur-md transition-all duration-300 sm:rounded-3xl",
+                isRolling &&
+                    "border-primary/60 shadow-[0_0_50px_rgba(189,36,223,0.5)]",
+                settled &&
+                    "scale-105 border-accent/70 shadow-[0_0_70px_rgba(34,211,238,0.65)]",
+                !isRolling && !settled && "border-border"
+            )}
         >
-            <span className="oracle-reel__digit">
+            {/* sheen */}
+            <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent" />
+            <span
+                className={cn(
+                    "font-black leading-none text-[clamp(3.4rem,15vw,15rem)]",
+                    settled ? "text-gradient" : "text-foreground",
+                    isRolling && "blur-[0.6px]"
+                )}
+            >
                 {targetDigit === null && !isSpinning ? "?" : displayDigit}
             </span>
         </div>
@@ -82,7 +98,7 @@ export default function OracleSlotMachine({
     const reelDelayStep = spinDuration / 5;
 
     return (
-        <div className="oracle-slot-machine">
+        <div className="relative flex items-center justify-center gap-2 sm:gap-4 lg:gap-6">
             {[0, 1, 2, 3, 4].map((pos) => (
                 <Reel
                     key={pos}
@@ -94,7 +110,7 @@ export default function OracleSlotMachine({
 
             {/* Hidden prompt to enable audio if user hasn't interacted yet */}
             {!audioEnabled && isSpinning && (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs text-white/50 animate-pulse">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pulse text-xs text-muted-foreground">
                     Click anywhere to enable sound
                 </div>
             )}

@@ -1,4 +1,13 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import type { FullUserProfile } from "@/src/lib/types";
+
+/** shadcn class combiner: merge conditional + conflicting Tailwind classes. */
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+}
+
+export const MANAGEABLE_LEVELS = ["100", "200", "300", "400", "500"];
 
 export function displayLevelBetter(level: FullUserProfile['academics']['currentLevel']) {
   switch (level) {

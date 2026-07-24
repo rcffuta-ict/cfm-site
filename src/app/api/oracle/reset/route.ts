@@ -1,22 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/src/lib/supabase/server";
-import { emitOracleEvent } from "@/src/lib/oracleStore";
+import { NextResponse } from "next/server";
+import { broadcastOracleEvent } from "@/src/lib/supabase/server";
+import { requireAdmin } from "@/src/lib/auth/requireAdmin";
+import { ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 
-// async function verifyAdmin(request: NextRequest) {
-//     const adminEmails = (process.env.ADMIN_EMAILS || "")
-//         .split(",")
-//         .map((e) => e.trim().toLowerCase());
-//     const token = request.cookies.get("sb-access-token")?.value;
-//     if (!token) return false;
-//     const supabase = getAdminClient();
-//     const { data: { user } } = await supabase.auth.getUser(token);
-//     return adminEmails.includes(user?.email?.toLowerCase() ?? "");
-// }
+export async function POST() {
+    if (!(await requireAdmin()))
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-export async function POST(request: NextRequest) {
-    // if (!(await verifyAdmin(request)))
-    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    emitOracleEvent("reset", {});
+    await broadcastOracleEvent(ORACLE_EVENTS.RESET);
     return NextResponse.json({ success: true });
 }

@@ -7,6 +7,8 @@ export type SessionData = {
     raffleId: number | null;
     eventTitle: string;
     eventDate: string;
+    /** Holder of the configured admin leadership position. */
+    isAdmin: boolean;
     /** Timestamp (ms) of when this session was last verified with the server */
     lastRefresh: number;
 };

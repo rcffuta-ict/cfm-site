@@ -2,6 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { RotateCcw, Home, Zap } from "lucide-react";
+import { Ambient } from "@/src/components/common/Ambient";
+import { Button } from "@/src/components/ui/button";
 
 export default function ErrorPage({
     error,
@@ -15,30 +18,38 @@ export default function ErrorPage({
     }, [error]);
 
     return (
-        <div className="error-page">
-            <div className="error-page__glow error-page__glow--red" />
-            <div className="error-page__glow error-page__glow--purple" />
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
+            <Ambient />
 
-            <div className="error-page__content">
-                <div className="error-page__bolt">⚡</div>
-                <p className="error-page__eyebrow">Oops</p>
-                <h1 className="error-page__heading glitch" data-text="ERROR">
-                    ERROR
-                </h1>
-                <p className="error-page__sub">
-                    Something went sideways on our end.
+            <div className="animate-floaty rounded-3xl border border-border bg-card/60 p-5 backdrop-blur-xl">
+                <Zap className="size-10 text-brand-amber" />
+            </div>
+
+            <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                well, that flopped
+            </p>
+            <h1 className="mt-2 text-[clamp(3rem,12vw,6rem)] font-black leading-none tracking-tight text-gradient">
+                ERROR
+            </h1>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                Something went sideways on our end — not the vibe. Try again in a
+                sec.
+            </p>
+            {error?.message && (
+                <p className="mt-4 max-w-md break-words rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-xs text-destructive">
+                    {error.message}
                 </p>
-                {error?.message && (
-                    <p className="error-page__detail">{error.message}</p>
-                )}
-                <div className="error-page__actions">
-                    <button className="ep-btn ep-btn--primary" onClick={reset}>
-                        ↺ Try Again
-                    </button>
-                    <Link href="/" className="ep-btn ep-btn--secondary">
-                        ← Go Home
+            )}
+
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button variant="brand" size="lg" onClick={reset}>
+                    <RotateCcw /> Run it back
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                    <Link href="/">
+                        <Home /> Go Home
                     </Link>
-                </div>
+                </Button>
             </div>
         </div>
     );

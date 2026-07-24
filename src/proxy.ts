@@ -17,7 +17,10 @@ export function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
-    const isProtected = pathname === "/" || pathname.startsWith("/api/oracle");
+    const isProtected =
+        pathname === "/" ||
+        pathname.startsWith("/admin") ||
+        pathname.startsWith("/api/oracle");
 
     // Unauthenticated user hitting a protected route → send to login.
     // NOTE: We deliberately do NOT redirect authenticated users away from

@@ -1,0 +1,125 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Gen-Z dark brand theme (shadcn tokens) ─────────────────────────────── */
+@layer base {
+  :root {
+    --background: 228 62% 4%;
+    --foreground: 222 100% 96%;
+
+    --card: 226 55% 8%;
+    --card-foreground: 222 100% 96%;
+
+    --popover: 226 58% 7%;
+    --popover-foreground: 222 100% 96%;
+
+    --primary: 289 74% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 73% 52%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 226 30% 15%;
+    --muted-foreground: 220 25% 70%;
+
+    --accent: 187 82% 53%;
+    --accent-foreground: 228 60% 8%;
+
+    --destructive: 343 90% 62%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 32% 18%;
+    --input: 224 32% 20%;
+    --ring: 289 74% 55%;
+
+    --radius: 0.9rem;
+
+    /* Reusable film-grain texture (self-contained, no external asset). */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+  }
+
+  /* Hide scrollbars app-wide for the kiosk / TV feel. */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Reusable brand helpers ─────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(
+      120deg,
+      #bd24df 0%,
+      #7b3ff2 38%,
+      #2d6ade 72%,
+      #22d3ee 100%
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradient-shift 5s ease infinite;
+  }
+
+  .bg-noise {
+    background-image: var(--grain);
+    background-size: 180px 180px;
+  }
+
+  .bg-tech-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 60% at 50% 40%,
+      #000 0%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      ellipse 80% 60% at 50% 40%,
+      #000 0%,
+      transparent 78%
+    );
+  }
+
+  /* Animated conic ring for hero marks / avatars. */
+  .ring-conic {
+    background: conic-gradient(
+      from 0deg,
+      #bd24df,
+      #22d3ee,
+      #2d6ade,
+      #ff5d8f,
+      #bd24df
+    );
+  }
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

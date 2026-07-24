@@ -3,8 +3,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAdminClient, broadcastOracleEvent } from "@/src/lib/supabase/server";
 import { getFullProfile } from "@/src/lib/profile";
-import { getCfmEvent } from "@/src/lib/event";
+import { getCfmEvent, isLevelDisabled } from "@/src/lib/event";
 import { resolveLevelFromClassSet } from "@/src/lib/level";
+import { isAdmin } from "@/src/lib/admin";
 import { setSessionCookie } from "@/src/lib/auth/session";
 
 const RAFFLE_BASE = parseInt(process.env.RAFFLE_ID_BASE || "42700", 10);
@@ -150,6 +151,16 @@ export async function loginAction(formData: FormData) {
                 error: "The event is not live yet. Please check back later.",
             };
 
+        // The admin can pause a whole level from participating (they can still
+        // watch the live stats — that page is public and never gated).
+        if (isLevelDisabled(event, level)) {
+            const digits = level.replace(/\D/g, "") || level;
+            return {
+                success: false,
+                error: `${digits} Level participation is currently paused by the admin. You can still view the live stats.`,
+            };
+        }
+
         const { data: existing } = await supabase
             .from("event_registrations")
             .select("id, raffle_id")
@@ -201,6 +212,8 @@ export async function loginAction(formData: FormData) {
         // Step 6: Persist a lightweight signed session cookie.
         await setSessionCookie({ pid: match.id, email, level });
 
+        const admin = await isAdmin(supabase, match.id);
+
         return {
             success: true,
             data: {
@@ -208,6 +221,7 @@ export async function loginAction(formData: FormData) {
                 raffleId,
                 eventTitle: event.title ?? "Combined Family Meeting",
                 eventDate: event.date ?? "",
+                isAdmin: admin,
             },
         };
     } catch (error: any) {

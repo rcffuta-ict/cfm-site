@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { ORACLE_CHANNEL } from "@/src/lib/oracle/channel";
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -42,15 +43,15 @@ export const getClient = (): SupabaseClient => {
 };
 
 /**
- * Broadcast an event to the oracle Supabase Realtime channel from the server.
- * Uses the admin client (service role) so it can always publish.
+ * Broadcast one or more events to the oracle Supabase Realtime channel from the
+ * server. Uses the admin client (service role) so it can always publish, and
+ * reaches every subscribed screen on any device/instance.
  */
-export async function broadcastOracleEvent(
-    event: string,
-    payload: Record<string, unknown>
+export async function broadcastOracleEvents(
+    events: { event: string; payload?: Record<string, unknown> }[]
 ) {
     const supabase = getAdminClient();
-    const channel = supabase.channel("oracle-channel");
+    const channel = supabase.channel(ORACLE_CHANNEL);
 
     await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("Broadcast timeout")), 5000);
@@ -66,6 +67,16 @@ export async function broadcastOracleEvent(
         });
     });
 
-    await channel.send({ type: "broadcast", event, payload });
+    for (const { event, payload } of events) {
+        await channel.send({ type: "broadcast", event, payload: payload ?? {} });
+    }
     await supabase.removeChannel(channel);
+}
+
+/** Convenience wrapper for a single oracle broadcast event. */
+export async function broadcastOracleEvent(
+    event: string,
+    payload: Record<string, unknown> = {}
+) {
+    return broadcastOracleEvents([{ event, payload }]);
 }

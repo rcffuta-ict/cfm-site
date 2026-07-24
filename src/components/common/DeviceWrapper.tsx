@@ -5,15 +5,20 @@ import { ReactNode } from "react";
 
 export default function DeviceWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
-    const isTvDisplay = pathname === "/oracle" || pathname === "/oracle/stats";
+    const isTvDisplay = pathname === "/oracle" || pathname === "/stats";
+    const isWide = pathname?.startsWith("/admin");
 
     if (isTvDisplay) {
-        return <div className="tv-layout">{children}</div>;
+        // Full-bleed kiosk / projector display.
+        return <div className="min-h-[100dvh] w-full">{children}</div>;
     }
 
+    // Centered app column — wider for the admin console.
     return (
-        <div className="mobile-layout-wrapper">
-            <div className="mobile-container">{children}</div>
+        <div
+            className={`mx-auto w-full flex-1 px-4 sm:px-6 ${isWide ? "max-w-5xl" : "max-w-2xl"}`}
+        >
+            {children}
         </div>
     );
 }

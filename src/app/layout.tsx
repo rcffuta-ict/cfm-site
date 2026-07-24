@@ -5,7 +5,7 @@ import EventClosed from "@/src/components/common/EventClosed";
 import Footer from "@/src/components/common/Footer";
 import { getAdminClient } from "@/src/lib/supabase/server";
 import { isEventLive } from "@/src/lib/event";
-import "../styles/style.scss";
+import "./globals.css";
 
 export const metadata: Metadata = {
     title: "Combined Family Meeting — Redeemed Christian Fellowship FUTA Chapter",
@@ -25,12 +25,12 @@ export default async function RootLayout({
     const isLive = await isEventLive(getAdminClient());
 
     return (
-        <html lang="en">
+        <html lang="en" className="dark">
             <body>
                 {!isLive ? (
                     <EventClosed />
                 ) : (
-                    <div className="flex flex-col min-h-[100dvh]">
+                    <div className="flex min-h-[100dvh] flex-col">
                         <DeviceWrapper>{children}</DeviceWrapper>
                         <Footer />
                     </div>

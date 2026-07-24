@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { X, Lock, TriangleAlert } from "lucide-react";
 import { IctLogo } from "@/src/components/common/IctLogo";
+import { Button } from "@/src/components/ui/button";
 
 interface Props {
     isOpen: boolean;
@@ -12,64 +13,64 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={onClose}
+        >
             <div
-                className="login-card max-w-lg w-full relative animate-in fade-in zoom-in-95 duration-200"
-                style={{ margin: 0 }}
+                className="relative w-full max-w-lg rounded-3xl border border-border bg-card/90 p-8 shadow-glow backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+                    className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label="Close"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <X className="size-5" />
                 </button>
 
-                <div className="flex flex-col items-center text-center space-y-4 mb-6">
+                <div className="mb-6 flex flex-col items-center space-y-3 text-center">
                     <IctLogo variant="white" width={100} />
-                    <h2 className="text-2xl font-bold text-white mt-4">
-                        How It Works
-                    </h2>
+                    <h2 className="text-2xl font-bold">How It Works</h2>
                 </div>
 
-                <div className="space-y-4 text-white/80 text-sm leading-relaxed">
+                <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
                     <p>
-                        Welcome! To get your Raffle ID, sign in using your{" "}
-                        <strong>Email or Phone number</strong> and the{" "}
-                        <strong>Level Invite Token</strong> shared by your{" "}
-                        <strong>Level Coordinator</strong>.
+                        To grab your Oracle ID, sign in with your{" "}
+                        <strong className="text-foreground">
+                            Email or Phone number
+                        </strong>{" "}
+                        and the{" "}
+                        <strong className="text-foreground">
+                            Level Invite Token
+                        </strong>{" "}
+                        from your{" "}
+                        <strong className="text-foreground">
+                            Level Coordinator
+                        </strong>
+                        .
                     </p>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left">
-                        <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                            <span>🔒</span> How your level is verified
+
+                    <div className="rounded-2xl border border-border bg-white/[0.03] p-4 text-left">
+                        <h3 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+                            <Lock className="size-4 text-accent" /> How your level
+                            is verified
                         </h3>
                         <p>
                             Each level has its own invite token. Signing in with
                             your level&apos;s token confirms which level you
-                            belong to, so the Oracle selection stays fair and
-                            only RCF FUTA members take part.
+                            belong to — so the Oracle stays fair and no cap.
                         </p>
                     </div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left space-y-3 mt-4">
-                        <h3 className="font-semibold text-white flex items-center gap-2">
-                            <span>⚠️</span> Important Requirements
+
+                    <div className="space-y-3 rounded-2xl border border-border bg-white/[0.03] p-4 text-left">
+                        <h3 className="flex items-center gap-2 font-semibold text-foreground">
+                            <TriangleAlert className="size-4 text-brand-amber" />{" "}
+                            Before you start
                         </h3>
-                        <ul className="list-disc pl-5 space-y-2 text-white/90">
+                        <ul className="list-disc space-y-2 pl-5 text-foreground/90">
                             <li>
-                                Use the email or phone number registered with
-                                RCF FUTA.
+                                Use the email or phone registered with RCF FUTA.
                             </li>
                             <li>
                                 Get the correct{" "}
@@ -77,18 +78,21 @@ export function LoginGuideModal({ isOpen, onClose }: Props) {
                                 level coordinator.
                             </li>
                         </ul>
-                        <p className="text-sm mt-3 text-red-300">
-                            <i>
-                                Don&apos;t have an account or token? Reach out to
-                                your <b>Level Coordinator</b> or the ICT team.
-                            </i>
+                        <p className="text-destructive">
+                            No account or token? Reach out to your{" "}
+                            <b>Level Coordinator</b> or the ICT team.
                         </p>
                     </div>
                 </div>
 
-                <button onClick={onClose} className="login-btn mt-6">
-                    Got it, let's sign in!
-                </button>
+                <Button
+                    variant="brand"
+                    size="lg"
+                    className="mt-6 w-full"
+                    onClick={onClose}
+                >
+                    Got it, let&apos;s go ✨
+                </Button>
             </div>
         </div>
     );

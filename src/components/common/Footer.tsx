@@ -1,20 +1,19 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import { IctLogo } from "./IctLogo";
 
 export default function Footer() {
     const pathname = usePathname();
 
-    // Do not show footer on oracle pages
-    if (pathname?.startsWith("/oracle")) {
+    // Do not show footer on the full-screen TV displays
+    if (pathname?.startsWith("/oracle") || pathname === "/stats") {
         return null;
     }
 
     return (
-        <footer className="w-full py-4 px-6 mt-auto border-t border-white/5 bg-[#0A1028]/80 backdrop-blur-md z-40 relative">
-            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-4 text-white/50 text-sm">
+        <footer className="relative z-40 mt-auto w-full border-t border-border bg-background/80 px-6 py-4 backdrop-blur-md">
+            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-4 text-sm text-muted-foreground sm:flex-row sm:justify-between">
                 <p>Courtesy of Level Coordinators</p>
                 <div className="flex items-center gap-2">
                     <span>Powered by RCF FUTA ICT Team</span>

@@ -2,6 +2,7 @@
 
 import { getAdminClient } from "@/src/lib/supabase/server";
 import { getFullProfile } from "@/src/lib/profile";
+import { isAdmin } from "@/src/lib/admin";
 import { getSessionCookie } from "@/src/lib/auth/session";
 import type { SessionData } from "@/src/lib/stores/profile.store";
 
@@ -41,6 +42,8 @@ export async function getSessionAction(): Promise<{
             raffleId = reg?.raffle_id ?? null;
         }
 
+        const admin = await isAdmin(supabase, payload.pid);
+
         return {
             success: true,
             data: {
@@ -48,6 +51,7 @@ export async function getSessionAction(): Promise<{
                 raffleId,
                 eventTitle: event?.title ?? "Combined Family Meeting",
                 eventDate: event?.date ?? "",
+                isAdmin: admin,
             },
         };
     } catch (err: any) {
