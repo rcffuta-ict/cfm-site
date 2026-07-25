@@ -24,6 +24,18 @@ export interface SessionPayload {
     iat: number;
 }
 
+/**
+ * The Oracle laptop runs a production build but serves it over plain HTTP on
+ * the venue LAN (`http://192.168.x.x:3000`). Browsers silently discard a
+ * `secure` cookie on a non-HTTPS origin, so the admin could never log in there
+ * — the session would appear to succeed and then vanish. `ORACLE_LOCAL=1` opts
+ * that one instance out. It must never be set on the public cloud build.
+ */
+function useSecureCookie(): boolean {
+    if (process.env.ORACLE_LOCAL === "1") return false;
+    return process.env.NODE_ENV === "production";
+}
+
 function secret(): string {
     return (
         process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -76,7 +88,7 @@ export async function setSessionCookie(
     cookieStore.set(COOKIE_NAME, value, {
         path: "/",
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: useSecureCookie(),
         sameSite: "lax",
         maxAge: MAX_AGE_SECONDS,
     });

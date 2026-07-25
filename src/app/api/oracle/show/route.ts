@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { broadcastOracleEvent } from "@/src/lib/supabase/server";
-import { requireAdmin } from "@/src/lib/auth/requireAdmin";
+import { requireOracleAdmin } from "@/src/lib/auth/requireAdmin";
+import { publishOracle } from "@/src/lib/oracle/bus";
 import { ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
-    if (!(await requireAdmin()))
+    if (!(await requireOracleAdmin()))
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { person } = await request.json();
-    await broadcastOracleEvent(ORACLE_EVENTS.REVEAL, person);
+    publishOracle([{ event: ORACLE_EVENTS.REVEAL, payload: person }]);
     return NextResponse.json({ success: true });
 }

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { OracleMember } from "@/src/lib/oracle/store";
 import type { OraclePerson } from "@/src/lib/oracle/channel";
 
 /** Digits-only level, so "300L" / "300 Level" / "300" all compare equal. */
@@ -11,40 +11,38 @@ interface PickArgs {
     level: string | null;
     /** null = any gender; otherwise "male" | "female". */
     gender: string | null;
-    /** Raffle ids to avoid re-picking (recent winners). */
-    exclude?: number[];
+    /** Waiting-room ids to avoid, most recent first. */
+    blocked?: number[];
 }
 
+export type PickResult =
+    | {
+          ok: true;
+          person: OraclePerson;
+          /**
+           * How many waiting-room entries were actually honoured. Lower than
+           * `blocked.length` means the pool was too small and the cooldown had
+           * to be relaxed — the console surfaces this.
+           */
+          cooldownDepth: number;
+          poolSize: number;
+      }
+    | { ok: false; error: string; status: number };
+
 /**
- * Pick a random eligible registrant straight from the database. No in-memory
- * sync step — any server instance can serve a pick, so it works on every
- * deployment topology.
+ * Choose a winner from the local snapshot. Deliberately synchronous and
+ * pure — no database, no I/O — because this runs in the hot path between the
+ * admin tapping Roll and the TV reacting.
  */
-export async function pickWinner(
-    supabase: SupabaseClient,
-    eventId: string,
-    { level, gender, exclude = [] }: PickArgs
-): Promise<
-    | { ok: true; person: OraclePerson }
-    | { ok: false; error: string; status: number }
-> {
-    let query = supabase
-        .from("event_registrations")
-        .select("raffle_id, first_name, last_name, level, gender, email")
-        .eq("event_id", eventId)
-        .not("raffle_id", "is", null);
-
-    if (gender) query = query.eq("gender", gender);
-
-    const { data, error } = await query;
-    if (error) {
-        return { ok: false, error: "Failed to load registrants.", status: 500 };
-    }
-
-    let candidates = data ?? [];
+export function pickWinner(
+    members: OracleMember[],
+    { level, gender, blocked = [] }: PickArgs
+): PickResult {
+    let candidates = members;
+    if (gender) candidates = candidates.filter((m) => m.gender === gender);
     if (level) {
         const want = levelDigits(level);
-        candidates = candidates.filter((r) => levelDigits(r.level) === want);
+        candidates = candidates.filter((m) => levelDigits(m.level) === want);
     }
 
     if (candidates.length === 0) {
@@ -55,44 +53,40 @@ export async function pickWinner(
         };
     }
 
-    // Avoid recent repeats when we still have fresh candidates.
-    const excludeSet = new Set(exclude);
-    const fresh = candidates.filter((r) => !excludeSet.has(r.raffle_id));
-    const pool = fresh.length > 0 ? fresh : candidates;
-
-    const winner = pool[Math.floor(Math.random() * pool.length)];
-
-    // Enrich only the winner with their unit name and profile picture (for the
-    // reveal card) — a registrant without a linked profile simply gets neither.
-    let unit: string | null = null;
-    let avatarUrl: string | null = null;
-    if (winner.email) {
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("id, avatar_url")
-            .eq("email", winner.email)
-            .maybeSingle();
-        avatarUrl = profile?.avatar_url ?? null;
-        if (profile?.id) {
-            const { data: membership } = await supabase
-                .from("membership_units")
-                .select("units(name)")
-                .eq("profile_id", profile.id)
-                .maybeSingle();
-            unit = (membership?.units as { name?: string } | null)?.name ?? null;
+    /**
+     * Honour as much of the waiting room as the pool can afford, dropping the
+     * oldest entries first. On a thin filter — say four 500L sisters with three
+     * slots — blocking everyone would empty the pool, and falling straight back
+     * to the full list could re-draw whoever came up seconds ago. Relaxing one
+     * entry at a time keeps the *most recent* draws excluded for as long as
+     * possible, which is the part people in the hall would actually notice.
+     */
+    let pool = candidates;
+    let cooldownDepth = 0;
+    for (let depth = blocked.length; depth >= 0; depth--) {
+        const block = new Set(blocked.slice(0, depth));
+        const filtered = candidates.filter((m) => !block.has(m.raffleId));
+        if (filtered.length > 0) {
+            pool = filtered;
+            cooldownDepth = depth;
+            break;
         }
     }
 
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+
     return {
         ok: true,
+        cooldownDepth,
+        poolSize: pool.length,
         person: {
-            raffleId: winner.raffle_id,
-            firstName: winner.first_name,
-            lastName: winner.last_name,
+            raffleId: winner.raffleId,
+            firstName: winner.firstName,
+            lastName: winner.lastName,
             level: winner.level,
             gender: winner.gender,
-            unit,
-            avatarUrl,
+            unit: winner.unit,
+            avatarUrl: winner.avatarUrl,
         },
     };
 }

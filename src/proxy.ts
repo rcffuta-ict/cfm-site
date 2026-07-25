@@ -12,6 +12,10 @@ export function proxy(request: NextRequest) {
         pathname.startsWith("/oracle") ||
         pathname.startsWith("/stats") ||
         pathname.startsWith("/api/stats") ||
+        // The TV screen is not signed in, so its live feed has to be public —
+        // same as the /oracle page it drives. Read-only, and it carries only
+        // what is already projected on the wall.
+        pathname.startsWith("/api/oracle/stream") ||
         pathname.startsWith("/api/auth/")
     ) {
         return NextResponse.next();

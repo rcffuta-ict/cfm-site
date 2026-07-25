@@ -1,7 +1,8 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getAdminClient, broadcastOracleEvent } from "@/src/lib/supabase/server";
+import { getAdminClient, broadcastStatsEvent } from "@/src/lib/supabase/server";
+import { STATS_EVENTS } from "@/src/lib/stats/channel";
 import { getFullProfile } from "@/src/lib/profile";
 import { getCfmEvent, isLevelDisabled } from "@/src/lib/event";
 import { resolveLevelFromClassSet } from "@/src/lib/level";
@@ -206,7 +207,7 @@ export async function loginAction(formData: FormData) {
                 actor_email: email,
             });
 
-            broadcastOracleEvent("stats:update", {}).catch(() => {});
+            broadcastStatsEvent(STATS_EVENTS.UPDATE, {}).catch(() => {});
         }
 
         // Step 6: Persist a lightweight signed session cookie.

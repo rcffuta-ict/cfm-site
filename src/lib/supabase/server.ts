@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { ORACLE_CHANNEL } from "@/src/lib/oracle/channel";
+import { STATS_CHANNEL } from "@/src/lib/stats/channel";
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -43,15 +43,22 @@ export const getClient = (): SupabaseClient => {
 };
 
 /**
- * Broadcast one or more events to the oracle Supabase Realtime channel from the
- * server. Uses the admin client (service role) so it can always publish, and
- * reaches every subscribed screen on any device/instance.
+ * Broadcast to the stats Supabase Realtime channel.
+ *
+ * Only live registration counts use this now — the Oracle moved to an
+ * in-process bus (`src/lib/oracle/bus.ts`) so the draw never waits on the
+ * network. Stats updates originate on the cloud instance when a member logs in,
+ * so they genuinely need a shared transport, and a counter can afford one.
+ *
+ * Note this opens and tears down a channel per call. That's acceptable for an
+ * occasional, best-effort counter refresh; it was not acceptable on the draw
+ * path, where the subscribe handshake was the bulk of the delay.
  */
-export async function broadcastOracleEvents(
+export async function broadcastStatsEvents(
     events: { event: string; payload?: Record<string, unknown> }[]
 ) {
     const supabase = getAdminClient();
-    const channel = supabase.channel(ORACLE_CHANNEL);
+    const channel = supabase.channel(STATS_CHANNEL);
 
     await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("Broadcast timeout")), 5000);
@@ -73,10 +80,10 @@ export async function broadcastOracleEvents(
     await supabase.removeChannel(channel);
 }
 
-/** Convenience wrapper for a single oracle broadcast event. */
-export async function broadcastOracleEvent(
+/** Convenience wrapper for a single stats broadcast event. */
+export async function broadcastStatsEvent(
     event: string,
     payload: Record<string, unknown> = {}
 ) {
-    return broadcastOracleEvents([{ event, payload }]);
+    return broadcastStatsEvents([{ event, payload }]);
 }

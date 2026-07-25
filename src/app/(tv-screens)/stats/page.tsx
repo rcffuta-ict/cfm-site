@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Trophy, Crown, Flame } from "lucide-react";
 import { createBrowserClient } from "@/src/lib/supabase/client";
-import { ORACLE_CHANNEL, ORACLE_EVENTS } from "@/src/lib/oracle/channel";
+import { STATS_CHANNEL, STATS_EVENTS } from "@/src/lib/stats/channel";
 import { CfmLogo } from "@/src/components/common/Brand";
 import { Chip } from "@/src/components/ui/chip";
 import { Progress } from "@/src/components/ui/progress";
@@ -69,8 +69,8 @@ export default function StatsPage() {
         intervalRef.current = setInterval(fetchStats, 15_000);
         const supabase = createBrowserClient();
         const channel = supabase
-            .channel(ORACLE_CHANNEL)
-            .on("broadcast", { event: ORACLE_EVENTS.STATS_UPDATE }, fetchStats)
+            .channel(STATS_CHANNEL)
+            .on("broadcast", { event: STATS_EVENTS.UPDATE }, fetchStats)
             .subscribe();
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);

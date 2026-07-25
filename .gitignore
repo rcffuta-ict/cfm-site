@@ -36,3 +36,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Temporary Files
+.tmp
+
+# Local Oracle state (member snapshot + waiting room) on the venue laptop
+.oracle

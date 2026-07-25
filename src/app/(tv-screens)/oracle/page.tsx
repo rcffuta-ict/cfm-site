@@ -7,8 +7,7 @@ import OracleSlotMachine from "@/src/components/OracleSlotMachine";
 import { displayLevelBetter } from "@/src/lib/utils";
 import { Chip } from "@/src/components/ui/chip";
 import { Avatar } from "@/src/components/ui/avatar";
-import { createBrowserClient } from "@/src/lib/supabase/client";
-import { ORACLE_CHANNEL, ORACLE_EVENTS } from "@/src/lib/oracle/channel";
+import { ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 import type { OraclePerson } from "@/src/lib/oracle/channel";
 
 export default function OraclePage() {
@@ -18,49 +17,75 @@ export default function OraclePage() {
     const [person, setPerson] = useState<OraclePerson | null>(null);
     const [connected, setConnected] = useState(false);
 
+    /**
+     * The Oracle feed is a plain SSE connection to the local server on the venue
+     * wifi — no Supabase, no internet. A roll reaches this screen in
+     * milliseconds, and a dead uplink can't stall the draw. `EventSource`
+     * reconnects on its own, so restarting the laptop mid-event heals itself.
+     */
     useEffect(() => {
-        const supabase = createBrowserClient();
-        const channel = supabase
-            .channel(ORACLE_CHANNEL)
-            .on("broadcast", { event: ORACLE_EVENTS.PREPARING }, () => {
-                setRaffleId(null);
-                setPerson(null);
-                setSpinning(true);
-                toast.loading("Oracle is choosing…", { id: "oracle" });
-            })
-            .on("broadcast", { event: ORACLE_EVENTS.SELECTION }, ({ payload }) => {
-                const id = Number(payload?.raffleId);
-                const duration = Number(payload?.spinDuration) || 3000;
-                if (!id) return;
-                setSpinDuration(duration);
-                setRaffleId(id);
-                setSpinning(false);
-                setTimeout(() => {
-                    toast.success("Oracle has decided", { id: "oracle" });
-                }, duration);
-            })
-            .on("broadcast", { event: ORACLE_EVENTS.REVEAL }, ({ payload }) => {
-                setPerson(payload as OraclePerson);
-            })
-            .on("broadcast", { event: ORACLE_EVENTS.RESET }, () => {
-                setRaffleId(null);
-                setPerson(null);
-                setSpinning(false);
-                toast.dismiss("oracle");
-            })
-            .subscribe((status) => {
-                setConnected(status === "SUBSCRIBED");
-                if (status === "SUBSCRIBED") {
-                    toast.success("Oracle is live", {
-                        duration: 2000,
-                        id: "oracle-live",
-                    });
-                }
-            });
+        const source = new EventSource("/api/oracle/stream");
 
-        return () => {
-            supabase.removeChannel(channel);
+        const onPreparing = () => {
+            setRaffleId(null);
+            setPerson(null);
+            setSpinning(true);
+            toast.loading("Oracle is choosing…", { id: "oracle" });
         };
+
+        const onSelection = (raw: MessageEvent) => {
+            const payload = JSON.parse(raw.data);
+            const id = Number(payload?.raffleId);
+            const duration = Number(payload?.spinDuration) || 3000;
+            if (!id) return;
+            setSpinDuration(duration);
+            setRaffleId(id);
+            setSpinning(false);
+            setTimeout(() => {
+                toast.success("Oracle has decided", { id: "oracle" });
+            }, duration);
+        };
+
+        const onReveal = (raw: MessageEvent) => {
+            setPerson(JSON.parse(raw.data) as OraclePerson);
+        };
+
+        const onReset = () => {
+            setRaffleId(null);
+            setPerson(null);
+            setSpinning(false);
+            toast.dismiss("oracle");
+        };
+
+        /**
+         * Sent once on connect. A TV opened late — or reloaded mid-reveal —
+         * lands on whatever the room is already looking at rather than dropping
+         * back to standby.
+         */
+        const onSync = (raw: MessageEvent) => {
+            const state = JSON.parse(raw.data);
+            setSpinDuration(Number(state?.spinDuration) || 3000);
+            setRaffleId(state?.raffleId ?? null);
+            setPerson((state?.person as OraclePerson | null) ?? null);
+            setSpinning(state?.phase === "preparing");
+        };
+
+        source.addEventListener(ORACLE_EVENTS.PREPARING, onPreparing);
+        source.addEventListener(ORACLE_EVENTS.SELECTION, onSelection);
+        source.addEventListener(ORACLE_EVENTS.REVEAL, onReveal);
+        source.addEventListener(ORACLE_EVENTS.RESET, onReset);
+        source.addEventListener(ORACLE_EVENTS.SYNC, onSync);
+
+        source.onopen = () => {
+            setConnected(true);
+            toast.success("Oracle is live", {
+                duration: 2000,
+                id: "oracle-live",
+            });
+        };
+        source.onerror = () => setConnected(false);
+
+        return () => source.close();
     }, []);
 
     return (
