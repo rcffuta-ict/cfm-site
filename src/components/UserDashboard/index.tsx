@@ -8,6 +8,7 @@ import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
+import { Avatar } from "@/src/components/ui/avatar";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -33,8 +34,6 @@ export default function UserDashboard() {
     const firstName = profile.profile.firstName;
     const lastName = profile.profile.lastName;
     const fullName = `${firstName} ${lastName}`;
-    const initials =
-        `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
     const level = profile.academics?.currentLevel ?? "?";
     const unit = profile.unit?.name ?? profile.teams?.[0]?.name ?? null;
     const raffleStr = raffleId ? String(raffleId) : "——";
@@ -104,12 +103,12 @@ export default function UserDashboard() {
                 {/* Player card */}
                 <div className="rounded-3xl border border-border bg-card/60 p-6 backdrop-blur-xl">
                     <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="absolute -inset-1 rounded-2xl bg-brand-gradient opacity-60 blur" />
-                            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background text-xl font-extrabold">
-                                {initials}
-                            </div>
-                        </div>
+                        <Avatar
+                            src={profile.profile.avatarUrl}
+                            name={fullName}
+                            size="md"
+                            ring
+                        />
                         <div>
                             <p className="text-lg font-bold">{fullName}</p>
                             <div className="mt-1.5 flex flex-wrap gap-2">

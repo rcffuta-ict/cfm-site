@@ -27,4 +27,6 @@ export interface OraclePerson {
     level: string;
     unit: string | null;
     gender: string;
+    /** The winner's profile picture, when they have one on their profile. */
+    avatarUrl: string | null;
 }

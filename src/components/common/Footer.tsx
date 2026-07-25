@@ -2,12 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import { IctLogo } from "./IctLogo";
+import { isTvRoute } from "@/src/lib/routes";
 
 export default function Footer() {
     const pathname = usePathname();
 
-    // Do not show footer on the full-screen TV displays
-    if (pathname?.startsWith("/oracle") || pathname === "/stats") {
+    // The TV screens carry their own ICT watermark instead of a footer.
+    if (isTvRoute(pathname)) {
         return null;
     }
 

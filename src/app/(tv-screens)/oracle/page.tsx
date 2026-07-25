@@ -5,9 +5,8 @@ import toast from "react-hot-toast";
 import { PartyPopper } from "lucide-react";
 import OracleSlotMachine from "@/src/components/OracleSlotMachine";
 import { displayLevelBetter } from "@/src/lib/utils";
-import { IctLogo } from "@/src/components/common/IctLogo";
-import { Ambient } from "@/src/components/common/Ambient";
 import { Badge } from "@/src/components/ui/badge";
+import { Avatar } from "@/src/components/ui/avatar";
 import { createBrowserClient } from "@/src/lib/supabase/client";
 import { ORACLE_CHANNEL, ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 import type { OraclePerson } from "@/src/lib/oracle/channel";
@@ -66,8 +65,6 @@ export default function OraclePage() {
 
     return (
         <div className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-10 px-6 py-16">
-            <Ambient />
-
             {/* Header */}
             <div className="flex flex-col items-center text-center">
                 <p className="text-[clamp(0.8rem,1.6vw,1.4rem)] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
@@ -117,7 +114,15 @@ export default function OraclePage() {
                                 <PartyPopper className="size-[1.2em]" />{" "}
                                 Congratulations!
                             </p>
-                            <h2 className="mt-4 text-[clamp(2.4rem,8vw,6rem)] font-black leading-tight tracking-tight text-gradient">
+                            <div className="mt-7 flex justify-center">
+                                <Avatar
+                                    src={person.avatarUrl}
+                                    name={`${person.firstName} ${person.lastName}`}
+                                    size="tv"
+                                    ring
+                                />
+                            </div>
+                            <h2 className="mt-7 text-[clamp(2.4rem,8vw,6rem)] font-black leading-tight tracking-tight text-gradient">
                                 {person.firstName} {person.lastName}
                             </h2>
                             <div className="mt-6 flex flex-wrap justify-center gap-3 text-[clamp(0.9rem,1.8vw,1.4rem)]">
@@ -139,11 +144,6 @@ export default function OraclePage() {
                     </div>
                 </div>
             )}
-
-            {/* ICT watermark */}
-            <div className="absolute bottom-6 right-6 opacity-30 transition-opacity duration-300 hover:opacity-100">
-                <IctLogo variant="white" width={80} />
-            </div>
         </div>
     );
 }

@@ -2,14 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import { isTvRoute } from "@/src/lib/routes";
 
 export default function DeviceWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
-    const isTvDisplay = pathname === "/oracle" || pathname === "/stats";
     const isWide = pathname?.startsWith("/admin");
 
-    if (isTvDisplay) {
-        // Full-bleed kiosk / projector display.
+    if (isTvRoute(pathname)) {
+        // Full-bleed kiosk / projector display — the (tv-screens) layout owns
+        // the chrome from here.
         return <div className="min-h-[100dvh] w-full">{children}</div>;
     }
 

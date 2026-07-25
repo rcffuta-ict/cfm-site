@@ -62,14 +62,17 @@ export async function pickWinner(
 
     const winner = pool[Math.floor(Math.random() * pool.length)];
 
-    // Enrich only the winner with their unit name (for the reveal card).
+    // Enrich only the winner with their unit name and profile picture (for the
+    // reveal card) — a registrant without a linked profile simply gets neither.
     let unit: string | null = null;
+    let avatarUrl: string | null = null;
     if (winner.email) {
         const { data: profile } = await supabase
             .from("profiles")
-            .select("id")
+            .select("id, avatar_url")
             .eq("email", winner.email)
             .maybeSingle();
+        avatarUrl = profile?.avatar_url ?? null;
         if (profile?.id) {
             const { data: membership } = await supabase
                 .from("membership_units")
@@ -89,6 +92,7 @@ export async function pickWinner(
             level: winner.level,
             gender: winner.gender,
             unit,
+            avatarUrl,
         },
     };
 }

@@ -9,6 +9,8 @@ import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
 import { Switch } from "@/src/components/ui/switch";
+import { Avatar } from "@/src/components/ui/avatar";
+import type { OraclePerson } from "@/src/lib/oracle/channel";
 import { cn, MANAGEABLE_LEVELS } from "@/src/lib/utils";
 import {
     getAdminOverviewAction,
@@ -24,14 +26,8 @@ const GENDERS = [
 ];
 const SPIN_TIMES = [1, 3, 5, 10];
 
-interface PickedPerson {
-    raffleId: number;
-    firstName: string;
-    lastName: string;
-    level: string;
-    unit: string | null;
-    gender: string;
-}
+/** Mirrors the reveal payload, so what the console previews is what the TV shows. */
+type PickedPerson = OraclePerson;
 
 function Pill({
     active,
@@ -277,17 +273,27 @@ export default function AdminConsole({
                     </div>
 
                     {picked && (
-                        <div className="mt-5 rounded-2xl border border-border bg-white/[0.03] p-4 text-center animate-in zoom-in-95">
-                            <div className="text-2xl font-black text-gradient">
-                                #{picked.raffleId}
-                            </div>
-                            <div className="mt-1 font-bold">
-                                {picked.firstName} {picked.lastName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                                {picked.level} Level
-                                {picked.unit && ` · ${picked.unit}`} ·{" "}
-                                {picked.gender === "male" ? "Brother" : "Sister"}
+                        <div className="mt-5 flex items-center gap-4 rounded-2xl border border-border bg-white/[0.03] p-4 animate-in zoom-in-95">
+                            <Avatar
+                                src={picked.avatarUrl}
+                                name={`${picked.firstName} ${picked.lastName}`}
+                                size="sm"
+                                className="h-14 w-14 rounded-2xl text-base"
+                            />
+                            <div className="min-w-0 text-left">
+                                <div className="text-xl font-black text-gradient">
+                                    #{picked.raffleId}
+                                </div>
+                                <div className="truncate font-bold">
+                                    {picked.firstName} {picked.lastName}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {picked.level} Level
+                                    {picked.unit && ` · ${picked.unit}`} ·{" "}
+                                    {picked.gender === "male"
+                                        ? "Brother"
+                                        : "Sister"}
+                                </div>
                             </div>
                         </div>
                     )}

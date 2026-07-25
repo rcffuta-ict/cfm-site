@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Trophy, Crown, Flame } from "lucide-react";
 import { createBrowserClient } from "@/src/lib/supabase/client";
 import { ORACLE_CHANNEL, ORACLE_EVENTS } from "@/src/lib/oracle/channel";
-import { IctLogo } from "@/src/components/common/IctLogo";
 import { CfmIcon } from "@/src/components/common/Brand";
-import { Ambient } from "@/src/components/common/Ambient";
 
 interface LevelCount {
     level: string;
@@ -91,13 +89,8 @@ export default function StatsPage() {
 
     return (
         <div className="relative flex min-h-[100dvh] flex-col px-5 py-8 sm:px-10">
-            <Ambient />
-
             {/* Header */}
             <header className="relative mb-8 text-center">
-                <div className="absolute right-0 top-0 opacity-70">
-                    <IctLogo variant="white" width={80} />
-                </div>
                 <CfmIcon width={56} height={56} className="mx-auto" priority />
                 <h1 className="mt-3 text-[clamp(1.8rem,4vw,3.2rem)] font-black tracking-tight">
                     {stats?.eventTitle || "Combined Family Meeting"}
