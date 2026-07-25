@@ -9,6 +9,7 @@ import {
     CalendarDays,
     ChevronRight,
     Zap,
+    Gamepad2,
 } from "lucide-react";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { Ambient } from "@/src/components/common/Ambient";
@@ -95,6 +96,26 @@ export default function UserDashboard() {
             </header>
 
             <main className="space-y-4">
+                {/* ── Live game ────────────────────────────────────────────
+                    A doorway, not the game itself. During a round the question
+                    should be the only thing on screen, so it gets its own page
+                    — this just gets people there. */}
+                <a
+                    href="/play"
+                    className="state-layer flex items-center gap-4 rounded-xl bg-tertiary p-5 text-on-tertiary shadow-e-1"
+                >
+                    <Gamepad2 className="size-6 shrink-0" />
+                    <span className="min-w-0 flex-1">
+                        <span className="block font-display text-lg font-extrabold leading-tight">
+                            Play the game
+                        </span>
+                        <span className="block text-sm opacity-90">
+                            Enter with your Oracle ID
+                        </span>
+                    </span>
+                    <ChevronRight className="size-5 shrink-0" />
+                </a>
+
                 {/* ── Oracle ID: the reason members open this app ───────── */}
                 <section className="overflow-hidden rounded-xl bg-primary-container shadow-e-1">
                     <div className="px-6 pt-6 text-center">

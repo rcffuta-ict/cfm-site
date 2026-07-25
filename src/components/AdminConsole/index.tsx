@@ -16,6 +16,8 @@ import {
     Minus,
     Plus,
     AlertTriangle,
+    LayoutDashboard,
+    Gamepad2,
 } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
@@ -332,7 +334,7 @@ export default function AdminConsole({
             <Ambient />
 
             {/* ── Header ───────────────────────────────────────────────── */}
-            <header className="flex items-center justify-between gap-4 rounded-xl bg-surface-container-low p-5 shadow-e-1">
+            <header className="flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl bg-surface-container-low p-5 shadow-e-1">
                 <div className="flex min-w-0 items-center gap-3.5">
                     <CfmIcon width={36} height={36} priority />
                     <div className="min-w-0">
@@ -344,16 +346,23 @@ export default function AdminConsole({
                         </p>
                     </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2.5 rounded-md bg-secondary-container px-4 py-2 text-on-secondary-container">
-                    <Users className="size-4" />
-                    <div>
-                        <div className="font-display text-xl font-extrabold leading-none">
-                            {overview.totalRegistered}
-                        </div>
-                        <div className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] opacity-80">
-                            registered
+                <div className="flex shrink-0 items-center gap-3">
+                    <div className="flex items-center gap-2.5 rounded-md bg-secondary-container px-4 py-2 text-on-secondary-container">
+                        <Users className="size-4" />
+                        <div>
+                            <div className="font-display text-xl font-extrabold leading-none">
+                                {overview.totalRegistered}
+                            </div>
+                            <div className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] opacity-80">
+                                registered
+                            </div>
                         </div>
                     </div>
+                    <Button asChild variant="text">
+                        <a href="/">
+                            <LayoutDashboard /> Dashboard
+                        </a>
+                    </Button>
                 </div>
             </header>
 
@@ -693,6 +702,11 @@ export default function AdminConsole({
                         <Button asChild variant="tonal">
                             <a href="/stats" target="_blank">
                                 <BarChart3 /> Live stats
+                            </a>
+                        </Button>
+                        <Button asChild variant="outlined" className="col-span-2">
+                            <a href="/admin/games">
+                                <Gamepad2 /> Game host
                             </a>
                         </Button>
                     </div>

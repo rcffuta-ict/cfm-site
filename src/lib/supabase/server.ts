@@ -43,22 +43,25 @@ export const getClient = (): SupabaseClient => {
 };
 
 /**
- * Broadcast to the stats Supabase Realtime channel.
+ * Broadcast to a Supabase Realtime channel from the server.
  *
- * Only live registration counts use this now — the Oracle moved to an
+ * Used by the parts of the app that genuinely span instances — live stats
+ * (triggered by member logins) and the games control plane (which spans 500
+ * phones). The Oracle deliberately does *not* use this: it moved to an
  * in-process bus (`src/lib/oracle/bus.ts`) so the draw never waits on the
- * network. Stats updates originate on the cloud instance when a member logs in,
- * so they genuinely need a shared transport, and a counter can afford one.
+ * network.
  *
- * Note this opens and tears down a channel per call. That's acceptable for an
- * occasional, best-effort counter refresh; it was not acceptable on the draw
- * path, where the subscribe handshake was the bulk of the delay.
+ * Note this opens and tears down a channel per call. That's fine for
+ * occasional, best-effort nudges where a poll loop is the real guarantee; it
+ * was not fine on the draw path, where the subscribe handshake was the bulk of
+ * the delay.
  */
-export async function broadcastStatsEvents(
+export async function broadcastEvents(
+    channelName: string,
     events: { event: string; payload?: Record<string, unknown> }[]
 ) {
     const supabase = getAdminClient();
-    const channel = supabase.channel(STATS_CHANNEL);
+    const channel = supabase.channel(channelName);
 
     await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("Broadcast timeout")), 5000);
@@ -85,5 +88,5 @@ export async function broadcastStatsEvent(
     event: string,
     payload: Record<string, unknown> = {}
 ) {
-    return broadcastStatsEvents([{ event, payload }]);
+    return broadcastEvents(STATS_CHANNEL, [{ event, payload }]);
 }

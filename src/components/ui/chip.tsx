@@ -12,7 +12,7 @@ import { cn } from "@/src/lib/utils";
  * so contrast holds without any per-use tuning.
  */
 const chipVariants = cva(
-    "inline-flex items-center gap-1.5 rounded-sm font-medium leading-none tracking-[0.01em] [&_svg]:size-[1.05em] [&_svg]:shrink-0",
+    "flex items-center gap-1.5 rounded-sm font-medium leading-none tracking-[0.01em] [&_svg]:size-[1.05em] [&_svg]:shrink-0 py-5",
     {
         variants: {
             variant: {

@@ -7,7 +7,7 @@
  * adding a new TV screen is a one-line change instead of a hunt through the
  * layout chrome.
  */
-export const TV_ROUTES = ["/oracle", "/stats"] as const;
+export const TV_ROUTES = ["/oracle", "/stats", "/games"] as const;
 
 export function isTvRoute(pathname: string | null | undefined): boolean {
     if (!pathname) return false;
