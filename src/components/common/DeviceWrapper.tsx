@@ -14,10 +14,10 @@ export default function DeviceWrapper({ children }: { children: ReactNode }) {
         return <div className="min-h-[100dvh] w-full">{children}</div>;
     }
 
-    // Centered app column — wider for the admin console.
+    // Centred app column — wider for the admin console.
     return (
         <div
-            className={`mx-auto w-full flex-1 px-4 sm:px-6 ${isWide ? "max-w-5xl" : "max-w-2xl"}`}
+            className={`mx-auto w-full flex-1 px-4 sm:px-6 ${isWide ? "max-w-5xl" : "max-w-xl"}`}
         >
             {children}
         </div>

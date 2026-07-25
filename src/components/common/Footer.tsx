@@ -7,26 +7,22 @@ import { isTvRoute } from "@/src/lib/routes";
 export default function Footer() {
     const pathname = usePathname();
 
-    // The TV screens carry their own ICT watermark instead of a footer.
+    // The TV screens carry their own ICT credit instead of a footer.
     if (isTvRoute(pathname)) {
         return null;
     }
 
     return (
-        <footer className="relative z-40 mt-auto w-full border-t border-border bg-background/80 px-6 py-4 backdrop-blur-md">
-            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-4 text-sm text-muted-foreground sm:flex-row sm:justify-between">
-                <p>Courtesy of Level Coordinators</p>
-                <div className="flex items-center gap-2">
-                    <span>Powered by RCF FUTA ICT Team</span>
-                    {/* <Image
-                        src="/logo/cfm-icon.png"
-                        alt="RCF FUTA"
-                        width={24}
-                        height={24}
-                        className="opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-                    /> */}
-
-                    <IctLogo variant="white" width={24} height={24} />
+        <footer className="mt-auto w-full border-t border-outline-variant bg-surface-container-lowest px-6 py-5">
+            <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+                <p className="text-xs tracking-[0.03em] text-on-surface-variant">
+                    Courtesy of the Level Coordinators
+                </p>
+                <div className="flex items-center gap-2.5">
+                    <span className="text-xs tracking-[0.03em] text-on-surface-variant">
+                        Powered by
+                    </span>
+                    <IctLogo asLink width={78} height={28} />
                 </div>
             </div>
         </footer>

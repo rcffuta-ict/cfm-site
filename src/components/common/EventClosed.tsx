@@ -1,39 +1,40 @@
-import { Moon } from "lucide-react";
+import { MoonStar } from "lucide-react";
 import { IctLogo } from "./IctLogo";
-import { CfmIcon } from "./Brand";
+import { CfmLogo } from "./Brand";
 import { Ambient } from "./Ambient";
+import { Chip } from "@/src/components/ui/chip";
 
 export default function EventClosed() {
     return (
-        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center p-6 text-center">
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12">
             <Ambient />
 
-            <div className="flex w-full max-w-lg flex-col items-center rounded-[2rem] border border-border bg-card/60 p-10 shadow-glow backdrop-blur-xl md:p-12">
-                <div className="group relative mb-8">
-                    <div className="absolute -inset-2 rounded-full bg-brand-gradient opacity-40 blur-xl transition-transform duration-500 group-hover:scale-110" />
-                    <div className="relative rounded-full border border-border bg-background p-5">
-                        <CfmIcon width={64} height={64} />
-                    </div>
+            <div className="w-full max-w-md rounded-xl bg-surface-container-low p-8 text-center shadow-e-2 sm:p-10">
+                <div className="flex justify-center">
+                    <CfmLogo width={230} height={115} priority />
                 </div>
 
-                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-white/[0.04] px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    <Moon className="size-3.5" /> Currently offline
-                </span>
+                <div className="mt-7 flex justify-center">
+                    <Chip variant="neutral">
+                        <MoonStar /> Currently offline
+                    </Chip>
+                </div>
 
-                <h1 className="mb-4 text-3xl font-extrabold tracking-tight md:text-4xl">
-                    Event <span className="text-gradient">Closed</span>
+                <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight text-on-surface">
+                    The doors are closed
                 </h1>
 
-                <p className="mx-auto max-w-sm text-base leading-relaxed text-muted-foreground md:text-lg">
-                    The doors aren&apos;t open rn. Hang tight — if you think
-                    this is a mix-up, reach out to your level coordinator.
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-6 tracking-[0.016em] text-on-surface-variant">
+                    Registration isn&apos;t open right now. Hang tight — if you
+                    think this is a mix-up, reach out to your level coordinator.
                 </p>
             </div>
 
-            <div className="mt-12 flex items-center gap-2 text-sm font-medium text-muted-foreground/70">
-                <span>Powered by</span>
-                <IctLogo variant="white" width={24} height={24} />
-                <span>ICT Team</span>
+            <div className="mt-10 flex items-center gap-2.5">
+                <span className="text-xs tracking-[0.03em] text-on-surface-variant">
+                    Powered by
+                </span>
+                <IctLogo asLink width={78} height={28} />
             </div>
         </div>
     );

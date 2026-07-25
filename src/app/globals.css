@@ -1,125 +1,184 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Gen-Z dark brand theme (shadcn tokens) ─────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CFM design system — Material 3 tonal, dark scheme.
+
+   Seeded from the Combined Family Meeting logo:
+     primary    magenta  #D6299B  → hsl(320 68% 50%)
+     secondary  indigo   #33328E  → hsl(241 48% 38%)
+     tertiary   yellow   #F2D330  → hsl(50  88% 57%)   (the lightning bolt)
+
+   Two rules this system lives by, both straight out of Material 3:
+
+   1. In a dark scheme the *role* colours take light tones and the *container*
+      colours take mid tones — so magenta appears as a soft light magenta on
+      dark, never as the raw brand magenta, which would vibrate against a dark
+      surface and fail contrast.
+
+   2. Elevation is expressed as a tonal step, not as a glow. A "higher" surface
+      is a lighter surface. Shadows are present but restrained; nothing in this
+      app emits light.
+
+   The neutrals are deliberately tinted toward indigo and bottom out at 12%
+   lightness, so the app reads as a deep cool blue-charcoal rather than black.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @layer base {
   :root {
-    --background: 228 62% 4%;
-    --foreground: 222 100% 96%;
+    /* ── Neutral surfaces (cool, lifted — never #000) ───────────────────── */
+    --surface-dim: 240 20% 9%;
+    --surface: 240 19% 12%;
+    --surface-bright: 240 16% 25%;
 
-    --card: 226 55% 8%;
-    --card-foreground: 222 100% 96%;
+    --surface-container-lowest: 240 22% 8%;
+    --surface-container-low: 240 18% 15%;
+    --surface-container: 240 17% 17%;
+    --surface-container-high: 240 16% 21%;
+    --surface-container-highest: 240 15% 26%;
 
-    --popover: 226 58% 7%;
-    --popover-foreground: 222 100% 96%;
+    --on-surface: 240 30% 95%;
+    --on-surface-variant: 240 16% 79%;
 
-    --primary: 289 74% 51%;
-    --primary-foreground: 0 0% 100%;
+    --outline: 240 12% 52%;
+    --outline-variant: 240 13% 30%;
 
-    --secondary: 220 73% 52%;
-    --secondary-foreground: 0 0% 100%;
+    /* ── Primary · magenta ──────────────────────────────────────────────── */
+    --primary: 320 78% 80%;
+    --on-primary: 320 72% 20%;
+    --primary-container: 320 62% 34%;
+    --on-primary-container: 320 90% 93%;
 
-    --muted: 226 30% 15%;
-    --muted-foreground: 220 25% 70%;
+    /* ── Secondary · indigo ─────────────────────────────────────────────── */
+    --secondary: 243 62% 82%;
+    --on-secondary: 243 48% 21%;
+    --secondary-container: 243 40% 35%;
+    --on-secondary-container: 243 80% 93%;
 
-    --accent: 187 82% 53%;
-    --accent-foreground: 228 60% 8%;
+    /* ── Tertiary · yellow (the bolt) ───────────────────────────────────── */
+    --tertiary: 50 88% 74%;
+    --on-tertiary: 48 92% 14%;
+    --tertiary-container: 47 62% 29%;
+    --on-tertiary-container: 50 92% 90%;
 
-    --destructive: 343 90% 62%;
-    --destructive-foreground: 0 0% 100%;
+    /* ── Error ──────────────────────────────────────────────────────────── */
+    --error: 6 90% 80%;
+    --on-error: 358 72% 20%;
+    --error-container: 358 58% 34%;
+    --on-error-container: 6 95% 93%;
 
-    --border: 224 32% 18%;
-    --input: 224 32% 20%;
-    --ring: 289 74% 55%;
+    /* ── Success (registration / live states) ───────────────────────────── */
+    --success: 152 62% 72%;
+    --on-success: 155 70% 12%;
+    --success-container: 154 44% 26%;
+    --on-success-container: 152 70% 90%;
 
-    --radius: 0.9rem;
+    --inverse-surface: 240 20% 92%;
+    --inverse-on-surface: 240 22% 16%;
 
-    /* Reusable film-grain texture (self-contained, no external asset). */
-    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    /* Material shape scale. */
+    --radius: 1rem;
+
+    /* State-layer opacities (M3 spec). */
+    --state-hover: 0.08;
+    --state-focus: 0.1;
+    --state-press: 0.12;
   }
 
   * {
-    @apply border-border;
+    @apply border-outline-variant;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-surface text-on-surface font-sans antialiased;
     min-height: 100dvh;
   }
 
-  /* Hide scrollbars app-wide for the kiosk / TV feel. */
   html {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     scroll-behavior: smooth;
   }
-  html::-webkit-scrollbar {
-    display: none;
+
+  /* Slim tonal scrollbar on personal devices; the TV layout hides it. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--surface));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--surface-container-highest));
+    border-radius: 999px;
+    border: 2px solid hsl(var(--surface));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--outline));
+  }
+
+  /* Material easing + duration defaults for anything that transitions. */
+  :where(a, button, [role="button"], input, select, textarea) {
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* ── Reusable brand helpers ─────────────────────────────────────────────── */
 @layer utilities {
-  .text-gradient {
-    background: linear-gradient(
-      120deg,
-      #bd24df 0%,
-      #7b3ff2 38%,
-      #2d6ade 72%,
-      #22d3ee 100%
-    );
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    animation: gradient-shift 5s ease infinite;
+  /*
+   * Material state layer: a translucent wash of the *content* colour laid over
+   * an interactive surface on hover/press. This is how Material communicates
+   * interaction — it replaces the brightness/glow tricks a neon theme uses.
+   */
+  .state-layer {
+    position: relative;
+    isolation: isolate;
+  }
+  .state-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .state-layer:hover::after {
+    opacity: var(--state-hover);
+  }
+  .state-layer:focus-visible::after {
+    opacity: var(--state-focus);
+  }
+  .state-layer:active::after {
+    opacity: var(--state-press);
   }
 
-  .bg-noise {
-    background-image: var(--grain);
-    background-size: 180px 180px;
-  }
-
-  .bg-tech-grid {
+  /*
+   * A very soft tonal wash used behind hero content. Two low-opacity radial
+   * tints of the brand hues — enough to keep a large dark screen from looking
+   * flat, far short of the drifting neon blobs this replaces.
+   */
+  .surface-wash {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 46px 46px;
-    -webkit-mask-image: radial-gradient(
-      ellipse 80% 60% at 50% 40%,
-      #000 0%,
-      transparent 78%
-    );
-    mask-image: radial-gradient(
-      ellipse 80% 60% at 50% 40%,
-      #000 0%,
-      transparent 78%
-    );
-  }
-
-  /* Animated conic ring for hero marks / avatars. */
-  .ring-conic {
-    background: conic-gradient(
-      from 0deg,
-      #bd24df,
-      #22d3ee,
-      #2d6ade,
-      #ff5d8f,
-      #bd24df
-    );
-  }
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
+      radial-gradient(
+        ellipse 70% 55% at 12% 0%,
+        hsl(var(--primary) / 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 65% 55% at 92% 8%,
+        hsl(var(--secondary) / 0.12),
+        transparent 62%
+      );
   }
 }

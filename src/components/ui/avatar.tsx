@@ -8,8 +8,9 @@ import { cn } from "@/src/lib/utils";
  * The one way we render a person in this app.
  *
  * Honours a member's own profile picture whenever they have one, and falls back
- * to their gradient initials when they don't — or when the image 404s / the host
- * is unreachable. Both states are first-class: nobody looks like a broken box.
+ * to their initials on a tonal container when they don't — or when the image
+ * 404s / the host is unreachable. Both states are first-class: nobody looks like
+ * a broken box.
  *
  * We deliberately use a plain <img> rather than next/image: avatar URLs come
  * from whatever host the main RCF FUTA profile app uploaded to, and next/image
@@ -18,18 +19,24 @@ import { cn } from "@/src/lib/utils";
  */
 
 const avatarVariants = cva(
-    "relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden bg-background font-extrabold uppercase leading-none tracking-tight",
+    "relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden font-bold uppercase leading-none tracking-tight",
     {
         variants: {
             size: {
-                sm: "h-9 w-9 rounded-xl text-[0.7rem]",
-                md: "h-16 w-16 rounded-2xl text-xl",
-                lg: "h-24 w-24 rounded-3xl text-3xl",
+                xs: "h-8 w-8 rounded-sm text-[0.65rem]",
+                sm: "h-10 w-10 rounded-sm text-xs",
+                md: "h-14 w-14 rounded-md text-base",
+                lg: "h-20 w-20 rounded-lg text-2xl",
                 /** Scales with the viewport for the church TV screens. */
-                tv: "h-[clamp(6rem,14vw,13rem)] w-[clamp(6rem,14vw,13rem)] rounded-[2rem] text-[clamp(1.8rem,5vw,4.5rem)]",
+                tv: "h-[clamp(6rem,14vw,13rem)] w-[clamp(6rem,14vw,13rem)] rounded-xl text-[clamp(1.8rem,5vw,4.5rem)]",
+            },
+            tone: {
+                primary: "bg-primary-container text-on-primary-container",
+                secondary: "bg-secondary-container text-on-secondary-container",
+                tertiary: "bg-tertiary-container text-on-tertiary-container",
             },
         },
-        defaultVariants: { size: "md" },
+        defaultVariants: { size: "md", tone: "primary" },
     }
 );
 
@@ -40,8 +47,8 @@ export interface AvatarProps
     src?: string | null;
     /** Used for the alt text and to derive initials. */
     name?: string | null;
-    /** Wraps the avatar in the animated conic brand ring. */
-    ring?: boolean;
+    /** Adds a Material outline around the mark. */
+    outlined?: boolean;
 }
 
 /** "Precious Adeyemi" → "PA"; single names → first letter. */
@@ -56,7 +63,8 @@ export function Avatar({
     src,
     name,
     size,
-    ring = false,
+    tone,
+    outlined = false,
     className,
     ...props
 }: AvatarProps) {
@@ -68,14 +76,14 @@ export function Avatar({
 
     const showImage = Boolean(src) && !failed;
 
-    const inner = (
+    return (
         <div
             className={cn(
-                avatarVariants({ size }),
-                // The initials fallback carries the brand gradient; a real photo
-                // sits on a neutral plate so it is never tinted.
-                !showImage && "bg-brand-gradient text-white",
-                "border border-white/10",
+                avatarVariants({ size, tone }),
+                // A real photo sits on a neutral plate so it is never tinted by
+                // the container colour behind it.
+                showImage && "bg-surface-container-highest",
+                outlined && "ring-1 ring-inset ring-outline-variant",
                 className
             )}
             {...props}
@@ -91,18 +99,6 @@ export function Avatar({
             ) : (
                 <span aria-hidden="true">{initialsFrom(name)}</span>
             )}
-        </div>
-    );
-
-    if (!ring) return inner;
-
-    return (
-        <div className="relative inline-flex">
-            <span
-                aria-hidden="true"
-                className="absolute -inset-1.5 animate-spin-slow rounded-[inherit] opacity-70 blur-md ring-conic"
-            />
-            <span className="relative">{inner}</span>
         </div>
     );
 }

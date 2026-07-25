@@ -1,55 +1,70 @@
 import Image from "next/image";
 import Link from "next/link";
-import clsx from "clsx";
+import { cn } from "@/src/lib/utils";
 
+/**
+ * The RCF FUTA ICT Team credit mark.
+ *
+ * The two source files are both drawn for light grounds — `ict-logo-dark.png`
+ * is the full-contrast navy lockup, and `ict-logo-white.png` is two-tone with a
+ * navy "RCF FUTA" badge that would be lost on our dark surface. So the default
+ * treatment sets the navy lockup on a light plate, which is legible on every
+ * screen in this app. `bare` is available for the rare light-ground case.
+ */
 interface IctLogoProps {
-    /**
-     * 'colored' = The Navy Blue logo (Use on light backgrounds)
-     * 'white'   = The White logo (Use on dark backgrounds like Sidebar/Hero)
-     */
-    variant?: "colored" | "white";
     className?: string;
+    plateClassName?: string;
     width?: number;
     height?: number;
-    asLink?: boolean; // If true, wraps in a Link to home
+    /** Wraps the mark in a link to the ICT team site. */
+    asLink?: boolean;
+    treatment?: "plate" | "bare";
 }
 
 export function IctLogo({
-    variant = "colored",
     className,
-    width = 140,
-    height = 50,
+    plateClassName,
+    width = 96,
+    height = 34,
     asLink = false,
+    treatment = "plate",
 }: IctLogoProps) {
-    const src =
-        variant === "colored"
-            ? "/logo/ict-logo-dark.png"
-            : "/logo/ict-logo-white.png";
-
-    const LogoImage = (
-        <div className={clsx("relative flex items-center", className)}>
-            <Image
-                src={src}
-                alt="RCF FUTA Logo"
-                width={width}
-                height={height}
-                className="object-contain h-auto w-auto" // Ensures aspect ratio is kept
-                priority
-            />
-        </div>
+    const img = (
+        <Image
+            src="/logo/ict-logo-dark.png"
+            alt="RCF FUTA ICT Team"
+            width={width}
+            height={height}
+            className={cn("h-auto w-auto object-contain", className)}
+        />
     );
+
+    const mark =
+        treatment === "plate" ? (
+            <span
+                className={cn(
+                    "inline-flex items-center justify-center rounded-md bg-[#FBFAFD] px-2.5 py-1.5",
+                    plateClassName
+                )}
+            >
+                {img}
+            </span>
+        ) : (
+            img
+        );
 
     if (asLink) {
         return (
             <Link
                 href="https://ict.rcffuta.com"
                 target="_blank"
-                className="hover:opacity-90 transition-opacity inline-block"
+                rel="noreferrer"
+                className="inline-block transition-opacity hover:opacity-80"
             >
-                {LogoImage}
+                {mark}
             </Link>
         );
     }
 
-    return LogoImage;
+    return mark;
 }
