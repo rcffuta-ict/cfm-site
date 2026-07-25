@@ -34,7 +34,7 @@ export default function EventClosed() {
                 <span className="text-xs tracking-[0.03em] text-on-surface-variant">
                     Powered by
                 </span>
-                <IctLogo asLink width={78} height={28} />
+                <IctLogo asLink width={68} height={22} />
             </div>
         </div>
     );

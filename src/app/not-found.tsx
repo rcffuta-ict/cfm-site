@@ -1,46 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { Home } from "lucide-react";
+import { Home, Compass } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
+import { Chip } from "@/src/components/ui/chip";
 
 export default function NotFoundPage() {
     return (
-        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12 text-center">
             <Ambient />
 
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white/[0.04] px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground animate-floaty">
-                404 · it&apos;s giving lost 💀
-            </span>
+            <CfmIcon width={56} height={56} priority />
 
-            <div className="flex items-end gap-2">
-                <span className="text-[clamp(5rem,20vw,11rem)] font-black leading-none text-gradient">
-                    4
-                </span>
-                <span className="relative animate-spin-slow">
-                    <span className="absolute -inset-2 rounded-full opacity-40 blur-md ring-conic" />
-                    <span className="relative rounded-full border border-border bg-background p-3">
-                        <CfmIcon width={80} height={80} priority />
-                    </span>
-                </span>
-                <span className="text-[clamp(5rem,20vw,11rem)] font-black leading-none text-gradient">
-                    4
-                </span>
+            <div className="mt-7">
+                <Chip variant="neutral">
+                    <Compass /> Page not found
+                </Chip>
             </div>
 
-            <h1 className="mt-6 text-2xl font-extrabold tracking-tight">
-                This page ghosted us 👻
-            </h1>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                No cap — the link you followed isn&apos;t on the guest list.
-                Let&apos;s get you back to the vibes.
+            <p className="mt-6 font-display text-[clamp(4rem,18vw,8rem)] font-extrabold leading-none tracking-tight text-primary">
+                404
             </p>
 
-            <Button asChild variant="brand" size="lg" className="mt-8">
+            <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-on-surface">
+                We can&apos;t find that page
+            </h1>
+            <p className="mt-2 max-w-sm text-sm leading-6 tracking-[0.016em] text-on-surface-variant">
+                The link you followed may be broken, or the page may have moved.
+            </p>
+
+            <Button asChild variant="filled" size="lg" className="mt-8">
                 <Link href="/">
-                    <Home /> Take me home ✨
+                    <Home /> Back to home
                 </Link>
             </Button>
         </div>

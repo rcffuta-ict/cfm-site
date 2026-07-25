@@ -2,16 +2,26 @@
 
 import { useEffect, useState, useTransition } from "react";
 import toast from "react-hot-toast";
-import { Dices, Eye, RotateCcw, Tv, BarChart3, SlidersHorizontal } from "lucide-react";
+import {
+    Dices,
+    Eye,
+    RotateCcw,
+    Tv,
+    BarChart3,
+    SlidersHorizontal,
+    Check,
+    Users,
+} from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
-import { IctLogo } from "@/src/components/common/IctLogo";
+import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
-import { Badge } from "@/src/components/ui/badge";
+import { Chip } from "@/src/components/ui/chip";
 import { Switch } from "@/src/components/ui/switch";
 import { Avatar } from "@/src/components/ui/avatar";
-import type { OraclePerson } from "@/src/lib/oracle/channel";
+import { Progress } from "@/src/components/ui/progress";
 import { cn, MANAGEABLE_LEVELS } from "@/src/lib/utils";
+import type { OraclePerson } from "@/src/lib/oracle/channel";
 import {
     getAdminOverviewAction,
     setLevelDisabledAction,
@@ -29,23 +39,50 @@ const SPIN_TIMES = [1, 3, 5, 10];
 /** Mirrors the reveal payload, so what the console previews is what the TV shows. */
 type PickedPerson = OraclePerson;
 
-function Pill({
-    active,
+/**
+ * Material 3 filter chip: an outlined container that fills with the secondary
+ * container colour and grows a leading checkmark when selected.
+ */
+function FilterChip({
+    selected,
     children,
     ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { selected: boolean }) {
     return (
         <button
+            type="button"
+            aria-pressed={selected}
             className={cn(
-                "rounded-full border px-4 py-1.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50",
-                active
-                    ? "border-transparent bg-brand-gradient text-white shadow-glow-sm"
-                    : "border-border bg-white/[0.03] text-muted-foreground hover:text-foreground"
+                "state-layer inline-flex h-8 items-center gap-1.5 rounded-sm px-3 text-[0.8125rem] font-medium",
+                "transition-colors duration-200 ease-standard",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                "disabled:pointer-events-none disabled:opacity-40",
+                selected
+                    ? "bg-secondary-container text-on-secondary-container"
+                    : "border border-outline text-on-surface-variant"
             )}
             {...props}
         >
+            {selected && <Check className="size-4 shrink-0" />}
             {children}
         </button>
+    );
+}
+
+function FieldGroup({
+    label,
+    children,
+}: {
+    label: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                {label}
+            </p>
+            <div className="flex flex-wrap gap-2">{children}</div>
+        </div>
     );
 }
 
@@ -94,7 +131,7 @@ export default function AdminConsole({
                     });
                     return;
                 }
-                toast.success(`Oracle picked #${json.data.raffleId}!`, {
+                toast.success(`Oracle picked #${json.data.raffleId}`, {
                     id: toastId,
                 });
                 setPicked(json.data);
@@ -118,7 +155,7 @@ export default function AdminConsole({
     function handleReset() {
         setPicked(null);
         fetch("/api/oracle/reset", { method: "POST" });
-        toast("Oracle reset.", { icon: "🔄" });
+        toast("Oracle reset");
     }
 
     function toggleLevel(lvl: string) {
@@ -152,165 +189,159 @@ export default function AdminConsole({
     }
 
     return (
-        <div className="relative min-h-[100dvh] space-y-6 py-8">
+        <div className="relative min-h-[100dvh] space-y-4 py-6">
             <Ambient />
 
-            {/* Topbar */}
-            <Card className="flex items-center justify-between gap-4 p-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold tracking-tight">
-                        <span className="text-gradient">Oracle</span> Console
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Admin control center
-                    </p>
-                </div>
-                <div className="text-right">
-                    <div className="text-3xl font-black leading-none text-gradient">
-                        {overview.totalRegistered}
-                    </div>
-                    <div className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-                        registered
+            {/* ── Header ───────────────────────────────────────────────── */}
+            <header className="flex items-center justify-between gap-4 rounded-xl bg-surface-container-low p-5 shadow-e-1">
+                <div className="flex min-w-0 items-center gap-3.5">
+                    <CfmIcon width={36} height={36} priority />
+                    <div className="min-w-0">
+                        <h1 className="truncate font-display text-xl font-extrabold tracking-tight text-on-surface">
+                            Oracle console
+                        </h1>
+                        <p className="text-xs text-on-surface-variant">
+                            Admin control centre
+                        </p>
                     </div>
                 </div>
-            </Card>
+                <div className="flex shrink-0 items-center gap-2.5 rounded-md bg-secondary-container px-4 py-2 text-on-secondary-container">
+                    <Users className="size-4" />
+                    <div>
+                        <div className="font-display text-xl font-extrabold leading-none">
+                            {overview.totalRegistered}
+                        </div>
+                        <div className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] opacity-80">
+                            registered
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-            <div className="grid gap-5 md:grid-cols-2">
-                {/* Draw controls */}
-                <Card className="p-6">
-                    <h2 className="mb-5 flex items-center gap-2 text-lg font-bold">
-                        <Dices className="size-5 text-primary" /> Draw Controls
-                    </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+                {/* ── Draw controls ────────────────────────────────────── */}
+                <Card variant="elevated" className="overflow-hidden">
+                    <div className="h-1">
+                        {isPending && (
+                            <Progress thickness={4} className="rounded-none" />
+                        )}
+                    </div>
+                    <div className="p-5">
+                        <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-on-surface">
+                            <Dices className="size-5 text-primary" /> Draw
+                            controls
+                        </h2>
 
-                    <div className="space-y-5">
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Level
-                            </p>
-                            <div className="flex flex-wrap gap-2">
+                        <div className="space-y-5">
+                            <FieldGroup label="Level">
                                 {LEVELS.map((l) => (
-                                    <Pill
+                                    <FilterChip
                                         key={l}
-                                        active={level === l}
+                                        selected={level === l}
                                         onClick={() => setLevel(l)}
                                         disabled={isPending}
                                     >
                                         {l}
-                                    </Pill>
+                                    </FilterChip>
                                 ))}
-                            </div>
-                        </div>
+                            </FieldGroup>
 
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Gender
-                            </p>
-                            <div className="flex flex-wrap gap-2">
+                            <FieldGroup label="Gender">
                                 {GENDERS.map((g) => (
-                                    <Pill
+                                    <FilterChip
                                         key={g.value}
-                                        active={gender === g.value}
+                                        selected={gender === g.value}
                                         onClick={() => setGender(g.value)}
                                         disabled={isPending}
                                     >
                                         {g.label}
-                                    </Pill>
+                                    </FilterChip>
                                 ))}
-                            </div>
-                        </div>
+                            </FieldGroup>
 
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Spin Duration
-                            </p>
-                            <div className="flex flex-wrap gap-2">
+                            <FieldGroup label="Spin duration">
                                 {SPIN_TIMES.map((t) => (
-                                    <Pill
+                                    <FilterChip
                                         key={t}
-                                        active={spinTime === t}
+                                        selected={spinTime === t}
                                         onClick={() => setSpinTime(t)}
                                         disabled={isPending}
                                     >
                                         {t}s
-                                    </Pill>
+                                    </FilterChip>
                                 ))}
-                            </div>
+                            </FieldGroup>
                         </div>
-                    </div>
 
-                    <div className="mt-6 space-y-3">
-                        <Button
-                            variant="brand"
-                            size="lg"
-                            className="w-full"
-                            onClick={handleRoll}
-                            disabled={isPending}
-                        >
-                            {isPending ? (
-                                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                            ) : (
-                                <>
-                                    <Dices /> Roll It
-                                </>
-                            )}
-                        </Button>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="mt-6 space-y-3">
+                            {/* The bolt-yellow is reserved for this one action. */}
                             <Button
-                                variant="glass"
-                                onClick={handleShowPerson}
-                                disabled={!picked || isPending}
-                            >
-                                <Eye /> Reveal
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={handleReset}
+                                variant="tertiary"
+                                size="xl"
+                                className="w-full"
+                                onClick={handleRoll}
                                 disabled={isPending}
                             >
-                                <RotateCcw /> Reset
+                                <Dices />
+                                {isPending ? "Choosing…" : "Roll the Oracle"}
                             </Button>
-                        </div>
-                    </div>
-
-                    {picked && (
-                        <div className="mt-5 flex items-center gap-4 rounded-2xl border border-border bg-white/[0.03] p-4 animate-in zoom-in-95">
-                            <Avatar
-                                src={picked.avatarUrl}
-                                name={`${picked.firstName} ${picked.lastName}`}
-                                size="sm"
-                                className="h-14 w-14 rounded-2xl text-base"
-                            />
-                            <div className="min-w-0 text-left">
-                                <div className="text-xl font-black text-gradient">
-                                    #{picked.raffleId}
-                                </div>
-                                <div className="truncate font-bold">
-                                    {picked.firstName} {picked.lastName}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                    {picked.level} Level
-                                    {picked.unit && ` · ${picked.unit}`} ·{" "}
-                                    {picked.gender === "male"
-                                        ? "Brother"
-                                        : "Sister"}
-                                </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    variant="tonal"
+                                    onClick={handleShowPerson}
+                                    disabled={!picked || isPending}
+                                >
+                                    <Eye /> Reveal
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={handleReset}
+                                    disabled={isPending}
+                                >
+                                    <RotateCcw /> Reset
+                                </Button>
                             </div>
                         </div>
-                    )}
+
+                        {picked && (
+                            <div className="mt-5 flex items-center gap-4 rounded-md bg-surface-container-highest p-4 animate-in fade-in zoom-in-95 duration-200">
+                                <Avatar
+                                    src={picked.avatarUrl}
+                                    name={`${picked.firstName} ${picked.lastName}`}
+                                    size="sm"
+                                />
+                                <div className="min-w-0">
+                                    <div className="font-display text-lg font-extrabold leading-tight text-primary">
+                                        #{picked.raffleId}
+                                    </div>
+                                    <div className="truncate text-sm font-semibold text-on-surface">
+                                        {picked.firstName} {picked.lastName}
+                                    </div>
+                                    <div className="truncate text-xs text-on-surface-variant">
+                                        {picked.level}
+                                        {picked.unit && ` · ${picked.unit}`} ·{" "}
+                                        {picked.gender === "male"
+                                            ? "Brother"
+                                            : "Sister"}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
-                {/* Level participation */}
-                <Card className="p-6">
-                    <h2 className="mb-2 flex items-center gap-2 text-lg font-bold">
-                        <SlidersHorizontal className="size-5 text-accent" /> Level
-                        Participation
+                {/* ── Level participation ──────────────────────────────── */}
+                <Card variant="elevated" className="p-5">
+                    <h2 className="flex items-center gap-2 text-base font-bold text-on-surface">
+                        <SlidersHorizontal className="size-5 text-secondary" />
+                        Level participation
                     </h2>
-                    <p className="mb-5 text-sm text-muted-foreground">
+                    <p className="mb-5 mt-1 text-sm leading-6 text-on-surface-variant">
                         Paused levels can&apos;t log in or register — but their
                         members can still watch the live stats.
                     </p>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                         {MANAGEABLE_LEVELS.map((lvl) => {
                             const disabled =
                                 overview.disabledLevels.includes(lvl);
@@ -319,33 +350,34 @@ export default function AdminConsole({
                                 <div
                                     key={lvl}
                                     className={cn(
-                                        "flex items-center justify-between rounded-2xl border p-4 transition-colors",
+                                        "flex items-center justify-between gap-4 rounded-md p-4 transition-colors duration-200 ease-standard",
                                         disabled
-                                            ? "border-destructive/40 bg-destructive/[0.06]"
-                                            : "border-border bg-white/[0.02]"
+                                            ? "bg-error-container/40"
+                                            : "bg-surface-container-highest"
                                     )}
                                 >
-                                    <div>
-                                        <p className="font-bold">{lvl} Level</p>
-                                        <Badge
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-semibold text-on-surface">
+                                            {lvl} Level
+                                        </span>
+                                        <Chip
                                             variant={
-                                                disabled
-                                                    ? "destructive"
-                                                    : "mint"
+                                                disabled ? "error" : "success"
                                             }
-                                            className="mt-1"
+                                            size="sm"
                                         >
                                             {busy
                                                 ? "…"
                                                 : disabled
                                                   ? "Paused"
                                                   : "Active"}
-                                        </Badge>
+                                        </Chip>
                                     </div>
                                     <Switch
                                         checked={!disabled}
                                         onCheckedChange={() => toggleLevel(lvl)}
                                         disabled={busy}
+                                        aria-label={`${lvl} Level participation`}
                                     />
                                 </div>
                             );
@@ -353,23 +385,23 @@ export default function AdminConsole({
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-3">
-                        <Button asChild variant="glass">
+                        <Button asChild variant="tonal">
                             <a href="/oracle" target="_blank">
-                                <Tv /> Oracle Screen
+                                <Tv /> Oracle screen
                             </a>
                         </Button>
-                        <Button asChild variant="glass">
+                        <Button asChild variant="tonal">
                             <a href="/stats" target="_blank">
-                                <BarChart3 /> Live Stats
+                                <BarChart3 /> Live stats
                             </a>
                         </Button>
                     </div>
                 </Card>
             </div>
 
-            <div className="flex justify-center opacity-50">
-                <IctLogo variant="white" width={70} />
-            </div>
+            {/* <div className="flex justify-center pt-2">
+                <IctLogo asLink width={78} height={28} />
+            </div> */}
         </div>
     );
 }

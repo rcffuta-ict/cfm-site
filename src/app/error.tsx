@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { RotateCcw, Home, Zap } from "lucide-react";
+import { RotateCcw, Home, TriangleAlert } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
+import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
 
 export default function ErrorPage({
@@ -18,36 +19,35 @@ export default function ErrorPage({
     }, [error]);
 
     return (
-        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center">
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12 text-center">
             <Ambient />
 
-            <div className="animate-floaty rounded-3xl border border-border bg-card/60 p-5 backdrop-blur-xl">
-                <Zap className="size-10 text-brand-amber" />
-            </div>
+            <CfmIcon width={56} height={56} priority />
 
-            <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                well, that flopped
-            </p>
-            <h1 className="mt-2 text-[clamp(3rem,12vw,6rem)] font-black leading-none tracking-tight text-gradient">
-                ERROR
+            <span className="mt-7 grid h-14 w-14 place-items-center rounded-full bg-error-container text-on-error-container">
+                <TriangleAlert className="size-7" />
+            </span>
+
+            <h1 className="mt-5 font-display text-2xl font-extrabold tracking-tight text-on-surface">
+                Something went wrong
             </h1>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                Something went sideways on our end — not the vibe. Try again in a
-                sec.
+            <p className="mt-2 max-w-sm text-sm leading-6 tracking-[0.016em] text-on-surface-variant">
+                An unexpected error occurred on our end. Try again in a moment.
             </p>
+
             {error?.message && (
-                <p className="mt-4 max-w-md break-words rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-xs text-destructive">
+                <p className="mt-5 max-w-md break-words rounded-md bg-error-container/50 px-4 py-3 text-left text-xs leading-5 text-on-error-container">
                     {error.message}
                 </p>
             )}
 
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button variant="brand" size="lg" onClick={reset}>
-                    <RotateCcw /> Run it back
+                <Button variant="filled" size="lg" onClick={reset}>
+                    <RotateCcw /> Try again
                 </Button>
-                <Button asChild variant="outline" size="lg">
+                <Button asChild variant="outlined" size="lg">
                     <Link href="/">
-                        <Home /> Go Home
+                        <Home /> Go home
                     </Link>
                 </Button>
             </div>

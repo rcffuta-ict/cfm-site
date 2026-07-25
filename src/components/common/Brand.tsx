@@ -30,7 +30,7 @@ interface MarkProps {
 function Plate({
     children,
     className,
-    noBg,
+    noBg=true,
 }: {
     children: React.ReactNode;
     className?: string;

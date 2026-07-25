@@ -2,13 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Ticket, Tv, BarChart3, Settings, LogOut, Zap } from "lucide-react";
+import {
+    BarChart3,
+    Settings,
+    LogOut,
+    CalendarDays,
+    ChevronRight,
+    Zap,
+} from "lucide-react";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
-import { Badge } from "@/src/components/ui/badge";
+import { Chip } from "@/src/components/ui/chip";
 import { Avatar } from "@/src/components/ui/avatar";
+import { displayLevelBetter } from "@/src/lib/utils";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -36,7 +44,7 @@ export default function UserDashboard() {
     const fullName = `${firstName} ${lastName}`;
     const level = profile.academics?.currentLevel ?? "?";
     const unit = profile.unit?.name ?? profile.teams?.[0]?.name ?? null;
-    const raffleStr = raffleId ? String(raffleId) : "——";
+    const raffleStr = raffleId ? String(raffleId) : "—————";
     const formattedDate = eventDate
         ? new Date(eventDate).toLocaleDateString("en-NG", {
               weekday: "long",
@@ -48,134 +56,166 @@ export default function UserDashboard() {
 
     return (
         <div
-            className={`relative min-h-[100dvh] pb-16 transition-all duration-700 ${visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+            className={`relative min-h-[100dvh] pb-14 transition-opacity duration-500 ease-standard ${
+                visible ? "opacity-100" : "opacity-0"
+            }`}
         >
             <Ambient />
 
-            {/* Header */}
-            <header className="sticky top-0 z-20 flex items-center justify-between py-4">
-                <div className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-md">
-                    <CfmIcon width={34} height={34} priority />
-                    <span className="text-sm font-bold tracking-tight">CFM</span>
+            {/* ── Material top app bar ──────────────────────────────────── */}
+            <header className="sticky top-0 z-20 -mx-4 mb-2 flex h-16 items-center justify-between gap-3 bg-surface px-4 sm:-mx-6 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                    <CfmIcon width={30} height={30} priority />
+                    <span className="truncate font-display text-lg font-bold tracking-tight text-on-surface">
+                        Combined Family Meeting
+                    </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-1">
                     {isAdmin && (
                         <Button
                             asChild
-                            variant="glass"
-                            size="sm"
-                            className="rounded-full"
+                            variant="text"
+                            size="icon"
+                            aria-label="Admin console"
                         >
                             <a href="/admin">
-                                <Settings /> Admin
+                                <Settings />
                             </a>
                         </Button>
                     )}
                     <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full"
+                        variant="text"
+                        size="icon"
                         onClick={handleLogout}
+                        aria-label="Sign out"
                     >
-                        <LogOut /> Sign Out
+                        <LogOut />
                     </Button>
                 </div>
             </header>
 
-            <main className="space-y-6 pt-2">
-                {/* Event banner */}
-                <div className="relative overflow-hidden rounded-3xl border border-border bg-brand-gradient bg-[length:200%_200%] p-[1px] animate-gradient-shift">
-                    <div className="rounded-[calc(1.5rem-1px)] bg-background/85 px-6 py-5 text-center backdrop-blur-xl">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            You&apos;re registered for
+            <main className="space-y-4">
+                {/* ── Oracle ID: the reason members open this app ───────── */}
+                <section className="overflow-hidden rounded-xl bg-primary-container shadow-e-1">
+                    <div className="px-6 pt-6 text-center">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-primary-container/80">
+                            Your Oracle ID
                         </p>
-                        <h1 className="mt-1 text-2xl font-extrabold tracking-tight">
-                            {eventTitle || "Combined Family Meeting"}
-                        </h1>
-                        {formattedDate && (
-                            <p className="mt-1 text-sm text-accent">
-                                {formattedDate}
-                            </p>
-                        )}
                     </div>
-                </div>
 
-                {/* Player card */}
-                <div className="rounded-3xl border border-border bg-card/60 p-6 backdrop-blur-xl">
-                    <div className="flex items-center gap-4">
-                        <Avatar
-                            src={profile.profile.avatarUrl}
-                            name={fullName}
-                            size="md"
-                            ring
-                        />
-                        <div>
-                            <p className="text-lg font-bold">{fullName}</p>
-                            <div className="mt-1.5 flex flex-wrap gap-2">
-                                <Badge variant="brand">
-                                    <Zap className="size-3" /> {level} Level
-                                </Badge>
-                                {unit && <Badge variant="accent">{unit}</Badge>}
-                            </div>
-                        </div>
-                    </div>
-                    <p className="mt-4 rounded-2xl border border-border bg-white/[0.03] p-4 text-sm leading-relaxed text-muted-foreground">
-                        🏆 <strong className="text-foreground">You&apos;re in
-                        the running!</strong> The Oracle picks from everyone
-                        registered — keep your eyes on the screen fr fr.
-                    </p>
-                </div>
-
-                {/* Oracle ID ticket */}
-                <div className="relative overflow-hidden rounded-3xl border border-border bg-card/60 p-6 text-center backdrop-blur-xl">
-                    <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-brand-pink/20 blur-2xl" />
-                    <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        <Ticket className="size-4 text-accent" /> Your Oracle ID
-                    </div>
-                    <div className="mt-4 flex justify-center gap-2">
+                    <div className="flex justify-center gap-1.5 px-4 py-5 sm:gap-2.5">
                         {raffleStr.split("").map((digit, i) => (
                             <span
                                 key={i}
-                                className="flex h-16 w-12 items-center justify-center rounded-xl border border-border bg-background text-3xl font-black text-gradient animate-in fade-in slide-in-from-bottom-2"
-                                style={{ animationDelay: `${i * 0.07}s` }}
+                                className="flex h-16 w-11 items-center justify-center rounded-md bg-surface-container-lowest font-display text-3xl font-extrabold text-on-surface sm:h-20 sm:w-14 sm:text-4xl"
                             >
                                 {digit}
                             </span>
                         ))}
                     </div>
-                    <p className="mt-4 text-sm text-muted-foreground">
-                        May the odds be ever in your favour 🙏
-                    </p>
-                </div>
 
-                {/* Quick links */}
-                <div className="grid grid-cols-2 gap-4">
-                    <a
+                    <p className="px-6 pb-6 text-center text-sm leading-6 text-on-primary-container/90">
+                        The Oracle draws from everyone registered. Keep an eye on
+                        the big screen.
+                    </p>
+                </section>
+
+                {/* ── Who you are ──────────────────────────────────────── */}
+                <section className="rounded-xl bg-surface-container-low p-5 shadow-e-1">
+                    <div className="flex items-center gap-4">
+                        <Avatar
+                            src={profile.profile.avatarUrl}
+                            name={fullName}
+                            size="md"
+                        />
+                        <div className="min-w-0">
+                            <p className="truncate text-base font-bold text-on-surface">
+                                {fullName}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                <Chip variant="secondary" size="sm">
+                                    {displayLevelBetter(level)}
+                                </Chip>
+                                {unit && (
+                                    <Chip variant="tertiary" size="sm">
+                                        {unit}
+                                    </Chip>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ── The event ────────────────────────────────────────── */}
+                <section className="rounded-xl border border-outline-variant p-5">
+                    <div className="flex items-start gap-4">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-tertiary-container text-on-tertiary-container">
+                            <CalendarDays className="size-5" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                                You&apos;re registered for
+                            </p>
+                            <p className="mt-1 font-display text-lg font-bold leading-6 text-on-surface">
+                                {eventTitle || "Combined Family Meeting"}
+                            </p>
+                            {formattedDate && (
+                                <p className="mt-0.5 text-sm text-on-surface-variant">
+                                    {formattedDate}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ── Where to look next ───────────────────────────────── */}
+                <nav className="overflow-hidden rounded-xl bg-surface-container-low shadow-e-1">
+                    <DashboardLink
                         href="/oracle"
-                        className="group flex flex-col gap-2 rounded-2xl border border-border bg-card/60 p-5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-primary/50"
-                    >
-                        <Tv className="size-6 text-primary transition-transform group-hover:scale-110" />
-                        <div>
-                            <p className="font-bold">Oracle Screen</p>
-                            <p className="text-xs text-muted-foreground">
-                                Watch live picks
-                            </p>
-                        </div>
-                    </a>
-                    <a
+                        icon={<Zap className="size-5" />}
+                        title="Oracle screen"
+                        subtitle="Watch the live draw"
+                    />
+                    <div className="mx-5 h-px bg-outline-variant" />
+                    <DashboardLink
                         href="/stats"
-                        className="group flex flex-col gap-2 rounded-2xl border border-border bg-card/60 p-5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-accent/50"
-                    >
-                        <BarChart3 className="size-6 text-accent transition-transform group-hover:scale-110" />
-                        <div>
-                            <p className="font-bold">Live Stats</p>
-                            <p className="text-xs text-muted-foreground">
-                                See the scoreboard
-                            </p>
-                        </div>
-                    </a>
-                </div>
+                        icon={<BarChart3 className="size-5" />}
+                        title="Live stats"
+                        subtitle="Registration scoreboard"
+                    />
+                </nav>
             </main>
         </div>
+    );
+}
+
+/** Material list item with a leading tonal icon and a trailing chevron. */
+function DashboardLink({
+    href,
+    icon,
+    title,
+    subtitle,
+}: {
+    href: string;
+    icon: React.ReactNode;
+    title: string;
+    subtitle: string;
+}) {
+    return (
+        <a
+            href={href}
+            className="state-layer flex items-center gap-4 px-5 py-4 text-on-surface"
+        >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                {icon}
+            </span>
+            <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">{title}</span>
+                <span className="block text-xs text-on-surface-variant">
+                    {subtitle}
+                </span>
+            </span>
+            <ChevronRight className="size-5 shrink-0 text-on-surface-variant" />
+        </a>
     );
 }

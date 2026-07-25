@@ -27,11 +27,11 @@ export function IctLogo({
     width = 96,
     height = 34,
     asLink = false,
-    treatment = "plate",
+    treatment = "bare",
 }: IctLogoProps) {
     const img = (
         <Image
-            src="/logo/ict-logo-dark.png"
+            src="/logo/ict-logo-light.png"
             alt="RCF FUTA ICT Team"
             width={width}
             height={height}

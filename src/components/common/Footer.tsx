@@ -22,7 +22,7 @@ export default function Footer() {
                     <span className="text-xs tracking-[0.03em] text-on-surface-variant">
                         Powered by
                     </span>
-                    <IctLogo asLink width={78} height={28} />
+                    <IctLogo asLink width={48} height={22} />
                 </div>
             </div>
         </footer>

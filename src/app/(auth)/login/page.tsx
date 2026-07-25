@@ -3,14 +3,15 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Sparkles, Info, LogIn } from "lucide-react";
+import { HelpCircle, LogIn } from "lucide-react";
 import { loginAction } from "./actions";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { CfmLogo } from "@/src/components/common/Brand";
+import { IctLogo } from "@/src/components/common/IctLogo";
 import { Ambient } from "@/src/components/common/Ambient";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
+import { TextField } from "@/src/components/ui/text-field";
+import { Progress } from "@/src/components/ui/progress";
 import { LoginGuideModal } from "./LoginGuideModal";
 
 export default function LoginPage() {
@@ -40,7 +41,7 @@ export default function LoginPage() {
                     return;
                 }
 
-                toast.success("You're in! 🎉", { id: toastId });
+                toast.success("You're in", { id: toastId });
                 setSession({
                     profile: result.data.profile,
                     raffleId: result.data.raffleId,
@@ -54,103 +55,100 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative flex min-h-[100dvh] items-center justify-center px-4 py-10">
+        <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-4 py-10">
             <Ambient />
 
-            <div className="w-full max-w-md rounded-3xl border border-border bg-card/70 p-8 shadow-glow backdrop-blur-xl animate-in fade-in zoom-in-95 duration-500 sm:p-10">
-                <div className="mb-5 flex justify-center">
-                    <div className="relative">
-                        <div className="absolute -inset-3 rounded-full bg-brand-gradient opacity-30 blur-xl" />
-                        <div className="relative rounded-2xl border border-border bg-background/60 p-3">
-                            <CfmLogo width={120} height={120} priority />
-                        </div>
-                    </div>
-                </div>
-
-                <h1 className="text-center text-2xl font-extrabold tracking-tight">
-                    Combined <span className="text-gradient">Family Meeting</span>
-                </h1>
-                <p className="mt-1 text-center text-sm text-muted-foreground">
-                    Sign in and lock in your Oracle ID 🔒
-                </p>
-
-                <div className="mt-5 flex justify-center">
-                    <Button
-                        type="button"
-                        variant="glass"
-                        size="sm"
-                        onClick={() => setShowGuide(true)}
-                    >
-                        <Info /> How it works
-                    </Button>
-                </div>
-
-                <form
-                    onSubmit={handleSubmit}
-                    className="mt-7 space-y-5"
-                    autoComplete="one-time-code"
-                >
-                    <div className="space-y-2">
-                        <Label htmlFor="identifier">Email or Phone Number</Label>
-                        <Input
-                            id="identifier"
-                            name="identifier"
-                            type="text"
-                            autoComplete="one-time-code"
-                            placeholder="you@futa.edu.ng or 08012345678"
-                            required
-                            disabled={isPending}
-                            data-lpignore="true"
-                            data-1p-ignore="true"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="token">Level Invite Token</Label>
-                        <Input
-                            id="token"
-                            name="token"
-                            type="text"
-                            autoComplete="one-time-code"
-                            placeholder="Token from your level rep"
-                            required
-                            disabled={isPending}
-                            data-lpignore="true"
-                            data-1p-ignore="true"
-                        />
-                    </div>
-
-                    {error && (
-                        <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
-                            {error}
-                        </p>
-                    )}
-
-                    <Button
-                        type="submit"
-                        variant="brand"
-                        size="lg"
-                        className="w-full"
-                        disabled={isPending}
-                    >
-                        {isPending ? (
-                            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                        ) : (
-                            <>
-                                <LogIn /> Sign In
-                            </>
-                        )}
-                    </Button>
-                </form>
-
-                <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-                    For RCF FUTA fam only (100L–500L). <br />
-                    Not on the list? Slide into your level coordinator&apos;s DMs.
-                </p>
+            {/* The event wordmark is the hero — it identifies the app better
+                than any heading we could set in type. */}
+            <div className="mb-7 flex justify-center">
+                <CfmLogo width={280} height={140} priority />
             </div>
 
-            <div className="pointer-events-none absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-1.5 text-xs text-muted-foreground/70">
-                <Sparkles className="size-3.5" /> Powered by RCF FUTA ICT
+            <div className="w-full max-w-md overflow-hidden rounded-xl bg-surface-container-low shadow-e-2">
+                {/* Indeterminate progress doubles as the loading affordance,
+                    pinned to the top edge of the card the Material way. */}
+                <div className="h-1">
+                    {isPending && <Progress thickness={4} className="rounded-none" />}
+                </div>
+
+                <div className="p-7 sm:p-8">
+                    <h1 className="font-display text-2xl font-extrabold tracking-tight text-on-surface">
+                        Sign in
+                    </h1>
+                    <p className="mt-1.5 text-sm leading-6 tracking-[0.016em] text-on-surface-variant">
+                        Claim your Oracle ID for the Combined Family Meeting.
+                    </p>
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="mt-7 space-y-4"
+                        autoComplete="one-time-code"
+                    >
+                        <TextField
+                            id="identifier"
+                            name="identifier"
+                            label="Email or phone number"
+                            placeholder="you@futa.edu.ng"
+                            type="text"
+                            autoComplete="one-time-code"
+                            required
+                            disabled={isPending}
+                            error={Boolean(error)}
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                        />
+
+                        <TextField
+                            id="token"
+                            name="token"
+                            label="Level invite token"
+                            supportingText={
+                                error || "From your level coordinator"
+                            }
+                            error={Boolean(error)}
+                            type="text"
+                            autoComplete="one-time-code"
+                            required
+                            disabled={isPending}
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                        />
+
+                        <Button
+                            type="submit"
+                            variant="filled"
+                            size="lg"
+                            className="w-full"
+                            disabled={isPending}
+                        >
+                            <LogIn /> {isPending ? "Signing in…" : "Sign in"}
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant="text"
+                            size="default"
+                            className="w-full"
+                            onClick={() => setShowGuide(true)}
+                        >
+                            <HelpCircle /> How it works
+                        </Button>
+                    </form>
+                </div>
+
+                <div className="border-t border-outline-variant bg-surface-container px-7 py-4">
+                    <p className="text-center text-xs leading-5 tracking-[0.03em] text-on-surface-variant">
+                        For RCF FUTA members, 100L–500L. Not on the list? Talk to
+                        your level coordinator.
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-9 flex items-center gap-2.5">
+                <span className="text-xs tracking-[0.03em] text-on-surface-variant">
+                    Powered by
+                </span>
+                <IctLogo asLink width={68} height={22} />
             </div>
 
             <LoginGuideModal

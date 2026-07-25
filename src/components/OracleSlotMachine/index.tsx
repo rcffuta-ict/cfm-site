@@ -10,6 +10,11 @@ interface ReelProps {
     isSpinning: boolean;
 }
 
+/**
+ * One reel. Idle and rolling reels are tonal surfaces; a settled reel steps up
+ * to the primary container so the final number reads as the answer from the
+ * back of the hall. No glow — the colour step does the work.
+ */
 function Reel({ targetDigit, delay, isSpinning }: ReelProps) {
     const [settled, setSettled] = useState(false);
     const [displayDigit, setDisplayDigit] = useState<number>(0);
@@ -50,20 +55,20 @@ function Reel({ targetDigit, delay, isSpinning }: ReelProps) {
     return (
         <div
             className={cn(
-                "relative flex h-[clamp(120px,26vw,380px)] w-[clamp(82px,16vw,260px)] items-center justify-center overflow-hidden rounded-2xl border-2 bg-card/70 backdrop-blur-md transition-all duration-300 sm:rounded-3xl",
-                isRolling &&
-                    "border-primary/60 shadow-[0_0_50px_rgba(189,36,223,0.5)]",
-                settled &&
-                    "scale-105 border-accent/70 shadow-[0_0_70px_rgba(34,211,238,0.65)]",
-                !isRolling && !settled && "border-border"
+                "relative flex h-[clamp(120px,26vw,380px)] w-[clamp(82px,16vw,260px)] items-center justify-center overflow-hidden rounded-xl",
+                "transition-colors duration-300 ease-standard",
+                settled
+                    ? "bg-primary-container"
+                    : isRolling
+                      ? "bg-surface-container-highest"
+                      : "bg-surface-container"
             )}
         >
-            {/* sheen */}
-            <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent" />
             <span
                 className={cn(
-                    "font-black leading-none text-[clamp(3.4rem,15vw,15rem)]",
-                    settled ? "text-gradient" : "text-foreground",
+                    "font-display font-extrabold leading-none text-[clamp(3.4rem,15vw,15rem)]",
+                    "transition-colors duration-300 ease-standard",
+                    settled ? "text-on-primary-container" : "text-on-surface",
                     isRolling && "blur-[0.6px]"
                 )}
             >
@@ -110,7 +115,7 @@ export default function OracleSlotMachine({
 
             {/* Hidden prompt to enable audio if user hasn't interacted yet */}
             {!audioEnabled && isSpinning && (
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pulse text-xs text-muted-foreground">
+                <div className="absolute -top-9 left-1/2 -translate-x-1/2 text-sm text-on-surface-variant">
                     Click anywhere to enable sound
                 </div>
             )}

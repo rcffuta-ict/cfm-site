@@ -6,6 +6,7 @@ import StoreInitializer from "@/src/components/common/StoreInitializer";
 import UserDashboard from "@/src/components/UserDashboard";
 import { CfmIcon } from "@/src/components/common/Brand";
 import { Ambient } from "@/src/components/common/Ambient";
+import { Progress } from "@/src/components/ui/progress";
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);
@@ -25,16 +26,13 @@ export default function HomePage() {
             {!mounted || isLoading || !session ? (
                 <div className="relative flex min-h-[100dvh] flex-col items-center justify-center gap-6">
                     <Ambient />
-                    <div className="relative">
-                        <div className="absolute -inset-4 animate-spin-slow rounded-full opacity-40 blur-lg ring-conic" />
-                        <div className="relative rounded-3xl border border-border bg-background/70 p-4 animate-floaty">
-                            <CfmIcon width={72} height={72} priority />
-                        </div>
+                    <CfmIcon width={64} height={64} priority />
+                    <div className="w-44">
+                        <Progress />
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm tracking-[0.016em] text-on-surface-variant">
                         Loading your dashboard…
                     </p>
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-primary" />
                 </div>
             ) : (
                 <UserDashboard />
