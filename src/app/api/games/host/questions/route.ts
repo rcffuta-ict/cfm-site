@@ -7,6 +7,8 @@ import {
     buildRoundConfig,
     isDisabled,
     validateQuestion,
+    DEFAULT_DURATION_SECONDS,
+    MAX_DURATION_SECONDS,
     type HostQuestion,
     type QuestionInput,
 } from "@/src/lib/games/questions";
@@ -83,8 +85,10 @@ export async function GET() {
             options: q?.options ?? [],
             correctIndex: q?.correct_index ?? 0,
             points: Number(config.basePoints) || q?.points || DEFAULT_ROUND_CONFIG.basePoints,
-            durationSeconds:
-                Number(config.durationSeconds) || DEFAULT_ROUND_CONFIG.durationSeconds,
+            durationSeconds: Math.min(
+                Number(config.durationSeconds) || DEFAULT_DURATION_SECONDS,
+                MAX_DURATION_SECONDS
+            ),
             answerCount: answerCounts.get(r.id) ?? 0,
         };
     });

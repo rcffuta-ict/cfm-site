@@ -4,6 +4,10 @@ import { requireAdmin } from "@/src/lib/auth/requireAdmin";
 import { getCfmEvent } from "@/src/lib/event";
 import { invalidateGameState } from "@/src/lib/games/service";
 import { DEFAULT_ROUND_CONFIG } from "@/src/lib/games/types";
+import {
+    DEFAULT_DURATION_SECONDS,
+    MAX_DURATION_SECONDS,
+} from "@/src/lib/games/questions";
 
 /**
  * Session setup: create the live session and load its trivia questions.
@@ -134,8 +138,10 @@ export async function POST(request: NextRequest) {
                 order_index: index,
                 config: {
                     ...DEFAULT_ROUND_CONFIG,
-                    durationSeconds:
-                        q.durationSeconds ?? DEFAULT_ROUND_CONFIG.durationSeconds,
+                    durationSeconds: Math.min(
+                        q.durationSeconds ?? DEFAULT_DURATION_SECONDS,
+                        MAX_DURATION_SECONDS
+                    ),
                     basePoints: q.points ?? DEFAULT_ROUND_CONFIG.basePoints,
                 },
             }))

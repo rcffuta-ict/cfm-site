@@ -3,7 +3,7 @@ import { getAdminClient, broadcastEvents } from "@/src/lib/supabase/server";
 import { requireAdmin } from "@/src/lib/auth/requireAdmin";
 import { GAME_CHANNEL, GAME_EVENTS } from "@/src/lib/games/channel";
 import { invalidateGameState, loadGameState } from "@/src/lib/games/service";
-import { isDisabled } from "@/src/lib/games/questions";
+import { isDisabled, MAX_DURATION_SECONDS } from "@/src/lib/games/questions";
 import { DEFAULT_ROUND_CONFIG, type RoundConfig } from "@/src/lib/games/types";
 
 /**
@@ -73,11 +73,19 @@ export async function POST(request: NextRequest) {
             //
             // Bingo is open-ended — it runs until someone completes a line, so
             // it gets a start but deliberately no deadline.
+            // Trivia is capped here as well as in the editor, so a round whose
+            // config predates the cap (or was written by hand) still runs to
+            // the current limit rather than the old 20 seconds.
+            const durationSeconds =
+                round.type === "trivia"
+                    ? Math.min(config.durationSeconds, MAX_DURATION_SECONDS)
+                    : config.durationSeconds;
+
             const startsAt = new Date();
             const endsAt =
                 round.type === "bingo"
                     ? null
-                    : new Date(startsAt.getTime() + config.durationSeconds * 1000);
+                    : new Date(startsAt.getTime() + durationSeconds * 1000);
 
             await supabase
                 .from("game_rounds")

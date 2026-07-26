@@ -22,7 +22,13 @@ import { Switch } from "@/src/components/ui/switch";
 import { TextField } from "@/src/components/ui/text-field";
 import { cn } from "@/src/lib/utils";
 import type { HostQuestion } from "@/src/lib/games/questions";
-import { MAX_OPTIONS, MIN_OPTIONS } from "@/src/lib/games/questions";
+import {
+    MAX_OPTIONS,
+    MIN_OPTIONS,
+    MIN_DURATION_SECONDS,
+    MAX_DURATION_SECONDS,
+    DEFAULT_DURATION_SECONDS,
+} from "@/src/lib/games/questions";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
 
@@ -39,7 +45,7 @@ const BLANK: Draft = {
     options: ["", ""],
     correctIndex: 0,
     points: 100,
-    durationSeconds: 20,
+    durationSeconds: DEFAULT_DURATION_SECONDS,
 };
 
 function toDraft(q: HostQuestion): Draft {
@@ -172,6 +178,13 @@ function QuestionForm({
                     label="Seconds"
                     type="number"
                     inputMode="numeric"
+                    min={MIN_DURATION_SECONDS}
+                    max={MAX_DURATION_SECONDS}
+                    supportingText={`${MIN_DURATION_SECONDS}–${MAX_DURATION_SECONDS}s`}
+                    error={
+                        draft.durationSeconds > MAX_DURATION_SECONDS ||
+                        draft.durationSeconds < MIN_DURATION_SECONDS
+                    }
                     value={String(draft.durationSeconds)}
                     onChange={(e) =>
                         setDraft({

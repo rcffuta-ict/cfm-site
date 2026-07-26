@@ -11,6 +11,15 @@ import { DEFAULT_ROUND_CONFIG } from "@/src/lib/games/types";
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 6;
 
+/**
+ * A trivia question runs 12 seconds at most — long enough to read four options
+ * and tap, short enough that 24 of them still fit the slot. Scoped to trivia
+ * rather than `DEFAULT_ROUND_CONFIG` so bingo and buzzer keep their own pacing.
+ */
+export const MIN_DURATION_SECONDS = 5;
+export const MAX_DURATION_SECONDS = 12;
+export const DEFAULT_DURATION_SECONDS = MAX_DURATION_SECONDS;
+
 export interface QuestionInput {
     question: string;
     options: string[];
@@ -72,9 +81,10 @@ export function validateQuestion(input: QuestionInput): string | null {
 
     if (
         input.durationSeconds !== undefined &&
-        (input.durationSeconds < 5 || input.durationSeconds > 300)
+        (input.durationSeconds < MIN_DURATION_SECONDS ||
+            input.durationSeconds > MAX_DURATION_SECONDS)
     )
-        return "Duration must be between 5 and 300 seconds.";
+        return `Duration must be between ${MIN_DURATION_SECONDS} and ${MAX_DURATION_SECONDS} seconds.`;
 
     return null;
 }
@@ -85,8 +95,12 @@ export function buildRoundConfig(
 ) {
     return {
         ...DEFAULT_ROUND_CONFIG,
-        durationSeconds:
-            input.durationSeconds ?? DEFAULT_ROUND_CONFIG.durationSeconds,
+        // Clamped as well as validated: the seeding path in the session route
+        // builds configs without going through `validateQuestion`.
+        durationSeconds: Math.min(
+            input.durationSeconds ?? DEFAULT_DURATION_SECONDS,
+            MAX_DURATION_SECONDS
+        ),
         basePoints: input.points ?? DEFAULT_ROUND_CONFIG.basePoints,
         disabled,
     };
