@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         .from("game_sessions")
         .insert({
             event_id: event.id,
-            title: title?.trim() || "CFM Trivia",
+            title: title?.trim() || "CFM Games",
             status: "live",
         })
         .select("id, title, status")

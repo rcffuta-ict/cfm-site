@@ -29,8 +29,12 @@ const globalForGames = globalThis as typeof globalThis & {
     __cfmGameInflight?: Promise<GameState>;
 };
 
+/** Server-side so it can be flipped without a rebuild, unlike NEXT_PUBLIC_*. */
+const HELPERS_ON = process.env.GAME_HELPERS === "1";
+
 const EMPTY: Omit<GameState, "serverNow"> = {
     session: null,
+    helpers: HELPERS_ON,
     round: null,
     question: null,
     bingo: null,
@@ -243,6 +247,7 @@ export async function loadGameState(
 
     return {
         session: sessionPublic,
+        helpers: HELPERS_ON,
         round,
         question,
         bingo,

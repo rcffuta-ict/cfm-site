@@ -79,6 +79,16 @@ export interface PublicBuzzer {
 
 export interface GameState {
     session: { id: string; title: string; status: SessionStatus } | null;
+    /**
+     * Whether on-screen assistance is switched on (`GAME_HELPERS=1`).
+     *
+     * Off by default, deliberately. The helpers — highlighting squares whose
+     * item has been called, listing what's already been called — make bingo
+     * markedly easier and take the attention off the caller and the big screen.
+     * They're useful while rehearsing or for a smaller, gentler room; they are
+     * not how the game is meant to be played.
+     */
+    helpers: boolean;
     round: PublicRound | null;
     question: PublicQuestion | null;
     bingo: PublicBingo | null;
@@ -103,7 +113,13 @@ export interface LeaderboardEntry {
     name: string;
     level: string | null;
     avatarUrl: string | null;
+    /** Per-game breakdown, so the board shows where someone earned it. */
+    trivia: number;
+    bingo: number;
+    buzzer: number;
+    /** The sum of the three — what the board is sorted by. */
     points: number;
+    /** Trivia questions answered correctly. */
     correct: number;
 }
 

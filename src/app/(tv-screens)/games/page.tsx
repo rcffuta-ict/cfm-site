@@ -68,22 +68,56 @@ export default function GamesScreen() {
                             Reconnecting…
                         </Chip>
                     )}
-                    {round && (
+                    {round && round.type === "trivia" && (
                         <Chip variant="secondary" size="tv">
                             Question {round.orderIndex + 1}
                         </Chip>
                     )}
+                    {round && round.type === "bingo" && (
+                        <Chip variant="secondary" size="tv">Bingo</Chip>
+                    )}
+                    {round && round.type === "buzzer" && (
+                        <Chip variant="secondary" size="tv">Buzzer</Chip>
+                    )}
                 </div>
             </header>
 
-            {/* ── Idle ─────────────────────────────────────────────────── */}
+            {/* ── Idle ─────────────────────────────────────────────────
+                Deliberately not the session title: that's an admin's label
+                ("CFM Trivia") and it would contradict the one thing this screen
+                is for — one surface, whichever game is running. */}
             {(!round || round.status === "pending") && (
-                <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-                    <h1 className="font-display text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-none tracking-tight text-on-surface">
-                        {state?.session?.title ?? "CFM Games"}
+                <div className="flex flex-1 flex-col items-center justify-center gap-[clamp(1.5rem,4vh,3rem)] text-center">
+                    {/* Each letter takes one of the three brand accents, so the
+                        monogram carries the identity without a logo file. */}
+                    <h1
+                        className="flex items-baseline justify-center gap-[0.06em] font-display font-extrabold uppercase leading-[0.85] tracking-[-0.04em]"
+                        style={{ fontSize: "clamp(5rem, 22vw, 18rem)" }}
+                        aria-label="CFM Games"
+                    >
+                        <span className="animate-letter-in text-primary [animation-delay:0ms]">C</span>
+                        <span className="animate-letter-in text-secondary [animation-delay:120ms]">F</span>
+                        <span className="animate-letter-in text-tertiary [animation-delay:240ms]">M</span>
                     </h1>
-                    <p className="text-[clamp(1.1rem,2.4vw,2rem)] text-on-surface-variant">
-                        Get your phones ready…
+
+                    <div className="space-y-[clamp(0.4rem,1.2vh,0.9rem)]">
+                        <p className="font-display text-[clamp(1.4rem,4.5vw,3.4rem)] font-extrabold uppercase leading-none tracking-[0.02em] text-on-surface">
+                            Combined Family Meeting
+                        </p>
+                        <p className="text-[clamp(0.85rem,2vw,1.6rem)] font-semibold uppercase tracking-[0.4em] text-on-surface-variant">
+                            Games
+                        </p>
+                    </div>
+
+                    <div className="mt-[clamp(0.5rem,2vh,1.5rem)] flex flex-wrap items-center justify-center gap-3">
+                        <Chip variant="primary" size="tv">Trivia</Chip>
+                        <Chip variant="secondary" size="tv">Bingo</Chip>
+                        <Chip variant="tertiary" size="tv">Buzzer</Chip>
+                    </div>
+
+                    <p className="flex items-center gap-3 text-[clamp(1rem,2.2vw,1.9rem)] text-on-surface-variant">
+                        <span className="size-[0.5em] animate-pulse-dot rounded-full bg-primary" />
+                        Grab your phone and open the app
                     </p>
                 </div>
             )}
@@ -162,34 +196,56 @@ export default function GamesScreen() {
                                 : "Buzzers are closed."}
                         </p>
                     ) : (
-                        <div className="mx-auto w-full max-w-4xl space-y-[clamp(0.4rem,1vh,0.8rem)]">
-                            {state.buzzer.presses
-                                .slice(0, 5)
-                                .map((press, index) => (
-                                    <div
-                                        key={press.position}
-                                        className={cn(
-                                            "flex items-center gap-5 rounded-lg p-[clamp(0.7rem,1.8vh,1.3rem)]",
-                                            index === 0
-                                                ? "bg-tertiary text-on-tertiary shadow-e-3"
-                                                : press.position <=
-                                                    state.buzzer!.scoringPlaces
-                                                  ? "bg-success-container text-on-success-container"
-                                                  : "bg-surface-container-high text-on-surface"
-                                        )}
-                                    >
-                                        <span className="w-[1.6em] shrink-0 text-center font-display text-[clamp(1.4rem,3.5vw,2.8rem)] font-extrabold leading-none">
-                                            {press.position}
-                                        </span>
-                                        <span className="min-w-0 flex-1 truncate text-[clamp(1.1rem,2.8vw,2.2rem)] font-bold">
-                                            {press.name}
-                                        </span>
-                                        <span className="shrink-0 font-mono text-[clamp(0.85rem,1.8vw,1.4rem)] tabular-nums opacity-85">
-                                            {formatReaction(press.reactionMs)}
-                                        </span>
-                                    </div>
-                                ))}
-                        </div>
+                        <>
+                            {/* First place gets the full width — with 500 people
+                                racing, the winner is the only thing most of the
+                                hall is looking for. */}
+                            <div className="mx-auto w-full max-w-5xl rounded-xl bg-tertiary p-[clamp(0.9rem,2.5vh,1.8rem)] text-on-tertiary shadow-e-3">
+                                <div className="flex items-center gap-5">
+                                    <span className="font-display text-[clamp(2rem,6vw,4.5rem)] font-extrabold leading-none">
+                                        1
+                                    </span>
+                                    <span className="min-w-0 flex-1 truncate font-display text-[clamp(1.4rem,4.5vw,3.4rem)] font-extrabold leading-tight">
+                                        {state.buzzer.presses[0].name}
+                                    </span>
+                                    <span className="shrink-0 font-mono text-[clamp(0.9rem,2vw,1.7rem)] tabular-nums opacity-85">
+                                        {formatReaction(state.buzzer.presses[0].reactionMs)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* The rest go in a grid rather than a column: a TV
+                                can't be scrolled, so runners-up have to fit the
+                                screen sideways. */}
+                            {state.buzzer.presses.length > 1 && (
+                                <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-[clamp(0.35rem,1vh,0.7rem)] sm:grid-cols-3 lg:grid-cols-4">
+                                    {state.buzzer.presses
+                                        .slice(1, 9)
+                                        .map((press) => (
+                                            <div
+                                                key={press.position}
+                                                className={cn(
+                                                    "flex items-center gap-3 rounded-lg p-[clamp(0.5rem,1.3vh,0.9rem)]",
+                                                    press.position <=
+                                                        state.buzzer!.scoringPlaces
+                                                        ? "bg-success-container text-on-success-container"
+                                                        : "bg-surface-container-high text-on-surface"
+                                                )}
+                                            >
+                                                <span className="shrink-0 font-display text-[clamp(0.95rem,1.9vw,1.6rem)] font-extrabold leading-none opacity-80">
+                                                    {press.position}
+                                                </span>
+                                                <span className="min-w-0 flex-1 truncate text-[clamp(0.8rem,1.6vw,1.3rem)] font-bold">
+                                                    {press.name}
+                                                </span>
+                                                <span className="shrink-0 font-mono text-[clamp(0.65rem,1.2vw,1rem)] tabular-nums opacity-75">
+                                                    {formatReaction(press.reactionMs)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}
@@ -259,30 +315,54 @@ export default function GamesScreen() {
                 </div>
             )}
 
-            {/* ── Leaderboard, at the reveal ───────────────────────────── */}
+            {/* ── Leaderboard, at the reveal ─────────────────────────────
+                Split by game so people can see where the points came from —
+                with three games running, a single total hides who's actually
+                been carrying which one. */}
             {round?.status === "revealed" && leaderboard.length > 0 && (
                 <div className="rounded-xl bg-surface-container-low p-[clamp(1rem,2.5vh,2rem)]">
-                    <h3 className="mb-4 flex items-center gap-3 font-display text-[clamp(1.2rem,2.6vw,2rem)] font-extrabold text-on-surface">
-                        <Trophy className="size-[1.1em] text-tertiary" /> Leaderboard
-                    </h3>
+                    <div className="mb-4 flex items-center justify-between gap-4">
+                        <h3 className="flex items-center gap-3 font-display text-[clamp(1.2rem,2.6vw,2rem)] font-extrabold text-on-surface">
+                            <Trophy className="size-[1.1em] text-tertiary" /> Leaderboard
+                        </h3>
+                        <div className="flex items-center gap-3 text-[clamp(0.6rem,1.1vw,0.9rem)] font-semibold uppercase tracking-[0.16em]">
+                            <span className="text-primary">Trivia</span>
+                            <span className="text-secondary">Bingo</span>
+                            <span className="text-tertiary">Buzzer</span>
+                        </div>
+                    </div>
+
                     <div className="grid gap-2 sm:grid-cols-2">
-                        {leaderboard.slice(0, 6).map((entry, index) => (
+                        {leaderboard.slice(0, 8).map((entry, index) => (
                             <div
                                 key={entry.profileId}
-                                className="flex items-center gap-3 rounded-md bg-surface-container-highest p-3"
+                                className={cn(
+                                    "flex items-center gap-3 rounded-md p-3",
+                                    index === 0
+                                        ? "bg-tertiary text-on-tertiary"
+                                        : "bg-surface-container-highest text-on-surface"
+                                )}
                             >
-                                <span className="w-8 shrink-0 text-center font-display text-[clamp(1rem,1.8vw,1.5rem)] font-extrabold text-primary">
+                                <span className="w-7 shrink-0 text-center font-display text-[clamp(1rem,1.8vw,1.5rem)] font-extrabold">
                                     {index + 1}
                                 </span>
-                                <Avatar
-                                    src={entry.avatarUrl}
-                                    name={entry.name}
-                                    size="sm"
-                                />
-                                <span className="min-w-0 flex-1 truncate text-[clamp(0.95rem,1.6vw,1.3rem)] font-semibold text-on-surface">
-                                    {entry.name}
-                                </span>
-                                <span className="shrink-0 font-display text-[clamp(1rem,1.8vw,1.5rem)] font-extrabold tabular-nums text-on-surface">
+                                <Avatar src={entry.avatarUrl} name={entry.name} size="sm" />
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[clamp(0.95rem,1.6vw,1.3rem)] font-semibold">
+                                        {entry.name}
+                                    </p>
+                                    {/* Per-game split, in the same colour order as
+                                        the key above. Zeroes are dropped so the
+                                        line stays readable at a distance. */}
+                                    <p className="flex flex-wrap gap-x-3 text-[clamp(0.65rem,1.1vw,0.9rem)] font-semibold tabular-nums opacity-80">
+                                        {entry.trivia > 0 && <span>T {entry.trivia}</span>}
+                                        {entry.bingo > 0 && <span>B {entry.bingo}</span>}
+                                        {entry.buzzer > 0 && <span>Z {entry.buzzer}</span>}
+                                    </p>
+                                </div>
+
+                                <span className="shrink-0 font-display text-[clamp(1.1rem,2vw,1.7rem)] font-extrabold tabular-nums">
                                     {entry.points}
                                 </span>
                             </div>
@@ -290,6 +370,7 @@ export default function GamesScreen() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

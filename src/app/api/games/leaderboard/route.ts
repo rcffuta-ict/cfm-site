@@ -4,24 +4,37 @@ import { loadGameState } from "@/src/lib/games/service";
 import type { LeaderboardEntry } from "@/src/lib/games/types";
 
 /**
- * Combined standings for the live session.
+ * Combined standings for the live session, broken down per game.
  *
- * Aggregated from `trivia_answers` rather than a materialised scores table —
- * with trivia alone that's one indexed read, and it can't drift out of sync
- * with the answers it's derived from. Worth materialising once buzzer and
- * bingo land and totals span three sources.
+ * Aggregated from the answer tables rather than a materialised scores table, so
+ * it can't drift out of sync with what it's derived from. The cost of that is
+ * reading every scoring row each time — which is why the whole thing sits
+ * behind a short cache: the TV and every phone open at the reveal all want this
+ * at once, and they can share one read.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const TOP_N = 20;
+const CACHE_TTL_MS = 3000;
 
-export async function GET() {
+interface Payload {
+    entries: LeaderboardEntry[];
+    totalPlayers: number;
+    version: string;
+}
+
+const globalForBoard = globalThis as typeof globalThis & {
+    __cfmBoardCache?: { payload: Payload; at: number };
+    __cfmBoardInflight?: Promise<Payload>;
+};
+
+async function build(): Promise<Payload> {
     const supabase = getAdminClient();
     const state = await loadGameState(supabase);
 
-    if (!state.session)
-        return NextResponse.json({ entries: [], totalPlayers: 0 });
+    const empty: Payload = { entries: [], totalPlayers: 0, version: "idle" };
+    if (!state.session) return empty;
 
     const { data: rounds } = await supabase
         .from("game_rounds")
@@ -29,11 +42,10 @@ export async function GET() {
         .eq("session_id", state.session.id);
 
     const roundIds = (rounds ?? []).map((r) => r.id);
-    if (roundIds.length === 0)
-        return NextResponse.json({ entries: [], totalPlayers: 0 });
+    if (roundIds.length === 0) return empty;
 
-    // Buzzer points hang off prompts rather than rounds, so the prompt ids for
-    // this session have to be resolved before the presses can be totalled.
+    // Buzzer points hang off prompts, not rounds, so those ids are resolved
+    // first and the three reads then run together.
     const { data: prompts } = await supabase
         .from("buzzer_prompts")
         .select("id")
@@ -54,55 +66,113 @@ export async function GET() {
                   .from("buzzer_presses")
                   .select("profile_id, points_awarded")
                   .in("prompt_id", promptIds)
-            : Promise.resolve({ data: [] as { profile_id: string; points_awarded: number }[] }),
+            : Promise.resolve({
+                  data: [] as { profile_id: string; points_awarded: number }[],
+              }),
     ]);
 
-    // One combined board across every game in the session, per game-plan §8.
-    const totals = new Map<string, { points: number; correct: number }>();
-    const bump = (id: string, points: number, correct = 0) => {
-        const row = totals.get(id) ?? { points: 0, correct: 0 };
-        row.points += points;
-        row.correct += correct;
-        totals.set(id, row);
+    interface Row {
+        trivia: number;
+        bingo: number;
+        buzzer: number;
+        total: number;
+        correct: number;
+    }
+
+    const totals = new Map<string, Row>();
+    const row = (id: string): Row => {
+        let r = totals.get(id);
+        if (!r) {
+            r = { trivia: 0, bingo: 0, buzzer: 0, total: 0, correct: 0 };
+            totals.set(id, r);
+        }
+        return r;
     };
 
-    for (const a of answers ?? [])
-        bump(a.profile_id, a.points_awarded ?? 0, a.is_correct ? 1 : 0);
-    for (const w of wins ?? []) bump(w.profile_id, w.points_awarded ?? 0);
-    for (const p of presses ?? []) bump(p.profile_id, p.points_awarded ?? 0);
+    for (const a of answers ?? []) {
+        const r = row(a.profile_id);
+        const pts = a.points_awarded ?? 0;
+        r.trivia += pts;
+        r.total += pts;
+        if (a.is_correct) r.correct += 1;
+    }
+    for (const w of wins ?? []) {
+        const r = row(w.profile_id);
+        const pts = w.points_awarded ?? 0;
+        r.bingo += pts;
+        r.total += pts;
+    }
+    for (const p of presses ?? []) {
+        const r = row(p.profile_id);
+        const pts = p.points_awarded ?? 0;
+        r.buzzer += pts;
+        r.total += pts;
+    }
 
-    // Only people who actually scored. Everyone who answered is in `totals`,
-    // but a board padded with zeros reads as broken on the big screen — and
-    // with one question in, most of the room legitimately has none yet.
-    // `totalPlayers` still reports participation.
+    // Only people who actually scored. A board padded with zeros reads as
+    // broken on a big screen, and early on most of the room legitimately has
+    // none yet — `totalPlayers` still reports participation.
     const ranked = [...totals.entries()]
-        .filter(([, row]) => row.points > 0)
-        .sort((a, b) => b[1].points - a[1].points)
+        .filter(([, r]) => r.total > 0)
+        .sort((a, b) => b[1].total - a[1].total)
         .slice(0, TOP_N);
 
     if (ranked.length === 0)
-        return NextResponse.json({ entries: [], totalPlayers: totals.size });
+        return { entries: [], totalPlayers: totals.size, version: `0:${totals.size}` };
 
     // Only the visible slice needs names, so this stays one small query even
     // with 500 players.
     const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url, entry_year")
+        .select("id, first_name, last_name, avatar_url")
         .in("id", ranked.map(([id]) => id));
 
     const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-    const entries: LeaderboardEntry[] = ranked.map(([profileId, row]) => {
+    const entries: LeaderboardEntry[] = ranked.map(([profileId, r]) => {
         const p = profileById.get(profileId);
         return {
             profileId,
             name: p ? `${p.first_name} ${p.last_name}`.trim() : "Unknown",
             level: null,
             avatarUrl: p?.avatar_url ?? null,
-            points: row.points,
-            correct: row.correct,
+            trivia: r.trivia,
+            bingo: r.bingo,
+            buzzer: r.buzzer,
+            points: r.total,
+            correct: r.correct,
         };
     });
 
-    return NextResponse.json({ entries, totalPlayers: totals.size });
+    return {
+        entries,
+        totalPlayers: totals.size,
+        version: `${entries.length}:${entries[0]?.points ?? 0}:${totals.size}`,
+    };
+}
+
+async function getBoard(): Promise<Payload> {
+    const cached = globalForBoard.__cfmBoardCache;
+    if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.payload;
+
+    if (globalForBoard.__cfmBoardInflight) return globalForBoard.__cfmBoardInflight;
+
+    const inflight = build()
+        .then((payload) => {
+            globalForBoard.__cfmBoardCache = { payload, at: Date.now() };
+            return payload;
+        })
+        .finally(() => {
+            globalForBoard.__cfmBoardInflight = undefined;
+        });
+
+    globalForBoard.__cfmBoardInflight = inflight;
+    return inflight;
+}
+
+export async function GET() {
+    const payload = await getBoard();
+    return NextResponse.json(payload, {
+        headers: { ETag: `W/"${payload.version}"`, "Cache-Control": "no-store" },
+    });
 }

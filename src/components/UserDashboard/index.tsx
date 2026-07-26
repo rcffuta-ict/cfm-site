@@ -10,6 +10,7 @@ import {
     ChevronRight,
     Zap,
     Info,
+    Signal,
 } from "lucide-react";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { Ambient } from "@/src/components/common/Ambient";
@@ -190,6 +191,13 @@ export default function UserDashboard() {
                         icon={<BarChart3 className="size-5" />}
                         title="Live stats"
                         subtitle="Registration scoreboard"
+                    />
+                    <div className="mx-5 h-px bg-outline-variant" />
+                    <DashboardLink
+                        href="/network"
+                        icon={<Signal className="size-5" />}
+                        title="Check your connection"
+                        subtitle="See if your signal is good enough to compete"
                     />
                     <div className="mx-5 h-px bg-outline-variant" />
                     <DashboardLink

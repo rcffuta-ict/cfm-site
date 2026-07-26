@@ -247,7 +247,7 @@ export default function QuestionEditor({
             const res = await fetch("/api/games/host/session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title: "CFM Trivia" }),
+                body: JSON.stringify({ title: "CFM Games" }),
             });
             const json = await res.json();
             if (!res.ok || !json.success) {

@@ -28,9 +28,16 @@ interface Win {
 export default function BingoPanel({
     round,
     bingo,
+    helpers,
 }: {
     round: PublicRound;
     bingo: PublicBingo;
+    /**
+     * On-screen assistance, off unless `GAME_HELPERS=1`. With it off the phone
+     * shows the card and nothing else: what's been called comes from the caller
+     * and the big screen, which is where the room should be looking.
+     */
+    helpers: boolean;
 }) {
     const [layout, setLayout] = useState<Layout | null>(null);
     const [marks, setMarks] = useState<Set<number>>(new Set());
@@ -74,9 +81,10 @@ export default function BingoPanel({
 
         const wasMarked = marks.has(cell);
 
-        // The item can't be un-called, so refuse locally rather than making the
-        // member wait for a round trip to be told no.
-        if (!wasMarked && !called.has(item)) {
+        // With helpers on, refuse locally so the feedback is instant. With them
+        // off we let the request go and report it neutrally — naming the item
+        // would hand back the very thing the helpers were hiding.
+        if (helpers && !wasMarked && !called.has(item)) {
             toast(`"${bingo.items[item]}" hasn't been called yet`, { icon: "🔇" });
             return;
         }
@@ -104,7 +112,12 @@ export default function BingoPanel({
                     else next.delete(cell);
                     return next;
                 });
-                toast.error(json.error || "Couldn't mark that");
+                toast.error(
+                    helpers
+                        ? json.error || "Couldn't mark that"
+                        : "Not yet — listen for the call",
+                    { icon: helpers ? undefined : "🔇" }
+                );
             }
         } catch {
             setMarks((prev) => {
@@ -162,31 +175,45 @@ export default function BingoPanel({
 
     return (
         <div className="space-y-4">
-            {/* ── What was just called ─────────────────────────────────── */}
-            <Card variant="elevated" className="p-5">
-                <div className="flex items-center justify-between gap-3">
+            {/* ── What was just called ─────────────────────────────────
+                Helpers only. Without them the phone still shows how far along
+                the game is — that's pacing, not an advantage — but never what
+                was called. */}
+            {helpers ? (
+                <Card variant="elevated" className="p-5">
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                            <Megaphone className="size-4" /> Just called
+                        </span>
+                        <Chip variant="neutral" size="sm">
+                            {bingo.called.length} of {bingo.items.length}
+                        </Chip>
+                    </div>
+                    <p className="mt-2 font-display text-2xl font-extrabold leading-tight text-on-surface">
+                        {lastCalled === undefined
+                            ? "Nothing yet…"
+                            : bingo.items[lastCalled]}
+                    </p>
+                    {bingo.called.length > 1 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                            {bingo.called.slice(1, 7).map((i) => (
+                                <Chip key={i} variant="outlined" size="sm">
+                                    {bingo.items[i]}
+                                </Chip>
+                            ))}
+                        </div>
+                    )}
+                </Card>
+            ) : (
+                <Card variant="elevated" className="flex items-center justify-between gap-3 p-4">
                     <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
-                        <Megaphone className="size-4" /> Just called
+                        <Megaphone className="size-4" /> Listen for the call
                     </span>
                     <Chip variant="neutral" size="sm">
                         {bingo.called.length} of {bingo.items.length}
                     </Chip>
-                </div>
-                <p className="mt-2 font-display text-2xl font-extrabold leading-tight text-on-surface">
-                    {lastCalled === undefined
-                        ? "Nothing yet…"
-                        : bingo.items[lastCalled]}
-                </p>
-                {bingo.called.length > 1 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                        {bingo.called.slice(1, 7).map((i) => (
-                            <Chip key={i} variant="outlined" size="sm">
-                                {bingo.items[i]}
-                            </Chip>
-                        ))}
-                    </div>
-                )}
-            </Card>
+                </Card>
+            )}
 
             {/* ── The card ─────────────────────────────────────────────── */}
             <Card variant="elevated" className="p-4">
@@ -199,7 +226,10 @@ export default function BingoPanel({
                     {layout.map((item, cell) => {
                         const free = item === null;
                         const isMarked = free || marks.has(cell);
-                        const isCalled = free || (item !== null && called.has(item));
+                        // The tint that says "this one's been called" is the
+                        // single biggest assist on the card, so it's gated too.
+                        const showAsCalled =
+                            helpers && (free || (item !== null && called.has(item)));
 
                         return (
                             <button
@@ -214,7 +244,7 @@ export default function BingoPanel({
                                     "transition-colors duration-150 ease-standard",
                                     isMarked
                                         ? "bg-primary text-on-primary"
-                                        : isCalled
+                                        : showAsCalled
                                           ? "bg-secondary-container text-on-secondary-container"
                                           : "bg-surface-container-highest text-on-surface-variant",
                                     !isOpen && "opacity-70"
@@ -236,7 +266,7 @@ export default function BingoPanel({
                     {win
                         ? "Your card is locked in."
                         : isOpen
-                          ? "Tap a square once it's been called."
+                          ? "Tap a square once you hear it called."
                           : "Bingo isn't running right now."}
                 </p>
             </Card>

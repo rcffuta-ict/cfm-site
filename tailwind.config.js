@@ -177,6 +177,18 @@ module.exports = {
           "100%": { transform: "translateX(100%)" },
         },
         "spin-slow": { to: { transform: "rotate(360deg)" } },
+        /* The CFM monogram on the games standby screen: each letter drops in,
+           then the trio breathes so a screen sitting idle for twenty minutes
+           still looks alive from the back of the hall. */
+        "letter-in": {
+          "0%": { opacity: "0", transform: "translateY(0.18em) scale(0.9)" },
+          "60%": { opacity: "1", transform: "translateY(-0.03em) scale(1.02)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "letter-breathe": {
+          "0%,100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-0.035em)" },
+        },
         /* Used by the Oracle bolt on reveal. */
         "bolt-strike": {
           "0%": { opacity: "0", transform: "translateY(-14px) scale(0.85)" },
@@ -194,6 +206,8 @@ module.exports = {
         shimmer: "shimmer 1.8s cubic-bezier(0.2,0,0,1) infinite",
         "spin-slow": "spin-slow 8s linear infinite",
         "bolt-strike": "bolt-strike 0.5s cubic-bezier(0,0,0,1) both",
+        "letter-in":
+          "letter-in 0.7s cubic-bezier(0.2,0,0,1) both, letter-breathe 4s cubic-bezier(0.2,0,0,1) 1.2s infinite",
       },
     },
   },

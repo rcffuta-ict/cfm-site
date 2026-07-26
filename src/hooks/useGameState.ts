@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameState } from "@/src/lib/games/types";
+import {
+    gradeLatency,
+    median,
+    type ConnectionReading,
+} from "@/src/lib/games/connection";
 
 /**
  * The one source of game state for both the TV and members' phones.
@@ -37,6 +42,9 @@ function nextInterval(status: string | undefined) {
         : POLL_IDLE_MS + Math.random() * POLL_IDLE_JITTER_MS;
 }
 
+/** Rolling window for the connection grade — long enough to ignore one blip. */
+const SAMPLE_WINDOW = 6;
+
 export interface UseGameState {
     state: GameState | null;
     /** serverNow - Date.now(), so a device with a wrong clock still counts down right. */
@@ -44,6 +52,12 @@ export interface UseGameState {
     loading: boolean;
     /** True once at least one poll has failed in a row; clears on success. */
     offline: boolean;
+    /**
+     * How this phone's connection is doing, measured from the poll loop itself
+     * rather than extra requests — the polls are already happening, and they're
+     * the same round trip the games depend on.
+     */
+    connection: ConnectionReading;
     refetch: () => void;
 }
 
@@ -52,6 +66,12 @@ export function useGameState(): UseGameState {
     const [loading, setLoading] = useState(true);
     const [offline, setOffline] = useState(false);
     const [clockOffset, setClockOffset] = useState(0);
+    const [connection, setConnection] = useState<ConnectionReading>({
+        grade: "good",
+        latencyMs: null,
+        lossRate: 0,
+    });
+    const samplesRef = useRef<(number | null)[]>([]);
 
     const etagRef = useRef<string | null>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,7 +79,20 @@ export function useGameState(): UseGameState {
     /** Read by the scheduler, which must not re-create itself on every poll. */
     const statusRef = useRef<string | undefined>(undefined);
 
+    /** Fold one round trip (or failure) into the rolling connection grade. */
+    const record = useCallback((latency: number | null) => {
+        const samples = [...samplesRef.current, latency].slice(-SAMPLE_WINDOW);
+        samplesRef.current = samples;
+
+        const ok = samples.filter((v): v is number => v !== null);
+        const lossRate = (samples.length - ok.length) / samples.length;
+        const latencyMs = median(ok);
+
+        setConnection({ grade: gradeLatency(latencyMs, lossRate), latencyMs, lossRate });
+    }, []);
+
     const poll = useCallback(async () => {
+        const started = performance.now();
         try {
             const res = await fetch("/api/games/state", {
                 cache: "no-store",
@@ -73,16 +106,19 @@ export function useGameState(): UseGameState {
             // Unchanged — the common case between transitions. Nothing to
             // re-render, but the clock offset is still worth refreshing.
             if (res.status === 304) {
+                record(performance.now() - started);
                 setOffline(false);
                 setLoading(false);
                 return;
             }
 
             if (!res.ok) {
+                record(null);
                 setOffline(true);
                 return;
             }
 
+            record(performance.now() - started);
             etagRef.current = res.headers.get("etag");
             const next = (await res.json()) as GameState;
             statusRef.current = next.round?.status;
@@ -91,9 +127,12 @@ export function useGameState(): UseGameState {
             setOffline(false);
             setLoading(false);
         } catch {
-            if (aliveRef.current) setOffline(true);
+            if (aliveRef.current) {
+                record(null);
+                setOffline(true);
+            }
         }
-    }, []);
+    }, [record]);
 
     const schedule = useCallback(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
@@ -129,7 +168,7 @@ export function useGameState(): UseGameState {
         };
     }, [poll, schedule, refetch]);
 
-    return { state, clockOffset, loading, offline, refetch };
+    return { state, clockOffset, loading, offline, connection, refetch };
 }
 
 /**

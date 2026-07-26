@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Timer, Lock, CheckCircle2, RotateCcw, Hourglass } from "lucide-react";
+import { Timer, Lock, CheckCircle2, RotateCcw, Hourglass, Signal } from "lucide-react";
 import { Card } from "@/src/components/ui/card";
 import { Chip } from "@/src/components/ui/chip";
 import { Progress } from "@/src/components/ui/progress";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
 import BingoPanel from "@/src/components/BingoPanel";
 import BuzzerPanel from "@/src/components/BuzzerPanel";
+import ConnectionWatch from "@/src/components/ConnectionWatch";
 import { cn } from "@/src/lib/utils";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
@@ -27,7 +28,7 @@ type Submission =
  * which on patchy mobile data matters more than almost anything else.
  */
 export default function GamePanel() {
-    const { state, clockOffset, loading, offline } = useGameState();
+    const { state, clockOffset, loading, offline, connection } = useGameState();
     const [submission, setSubmission] = useState<Submission>({ status: "idle" });
     const lastQuestionRef = useRef<string | null>(null);
 
@@ -82,24 +83,63 @@ export default function GamePanel() {
         }
     }
 
+    // Mounted for the whole life of the panel so the warning can fire whatever
+    // game is on screen.
+    const watch = <ConnectionWatch connection={connection} />;
+
+    const poorBanner =
+        connection.grade === "poor" || connection.grade === "offline" ? (
+            <a
+                href="/network"
+                className="state-layer mb-3 flex items-center gap-3 rounded-md bg-error-container p-3 text-sm font-semibold text-on-error-container"
+            >
+                <Signal className="size-4 shrink-0" />
+                <span className="min-w-0 flex-1">
+                    Weak connection — you may be at a disadvantage. Tap to check.
+                </span>
+            </a>
+        ) : null;
+
     if (loading) {
         return (
-            <Card variant="elevated" className="p-5">
-                <Progress thickness={4} />
-            </Card>
+            <>
+                {watch}
+                <Card variant="elevated" className="p-5">
+                    <Progress thickness={4} />
+                </Card>
+            </>
         );
     }
 
     // ── Each game gets its own surface; the poll decides which ──────────
     if (round && round.type === "bingo" && state?.bingo && round.status !== "pending")
-        return <BingoPanel round={round} bingo={state.bingo} />;
+        return (
+            <>
+                {watch}
+                {poorBanner}
+                <BingoPanel
+                    round={round}
+                    bingo={state.bingo}
+                    helpers={state.helpers}
+                />
+            </>
+        );
 
     if (round && round.type === "buzzer" && state?.buzzer && round.status !== "pending")
-        return <BuzzerPanel round={round} buzzer={state.buzzer} />;
+        return (
+            <>
+                {watch}
+                {poorBanner}
+                <BuzzerPanel round={round} buzzer={state.buzzer} />
+            </>
+        );
 
     // ── Nothing live ────────────────────────────────────────────────────
     if (!round || round.status === "pending" || !question) {
         return (
+            <>
+                {watch}
+                {poorBanner}
             <Card variant="elevated" className="p-6 text-center">
                 <Hourglass className="mx-auto mb-3 size-6 text-on-surface-variant" />
                 <p className="text-sm font-semibold text-on-surface">
@@ -109,6 +149,7 @@ export default function GamePanel() {
                     Keep this open — it switches over on its own.
                 </p>
             </Card>
+            </>
         );
     }
 
@@ -117,6 +158,9 @@ export default function GamePanel() {
         submission.status === "idle" ? null : submission.choice;
 
     return (
+        <>
+        {watch}
+        {poorBanner}
         <Card variant="elevated" className="p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
                 <Chip variant="neutral" size="sm">
@@ -209,5 +253,6 @@ export default function GamePanel() {
                 </p>
             )}
         </Card>
+        </>
     );
 }
