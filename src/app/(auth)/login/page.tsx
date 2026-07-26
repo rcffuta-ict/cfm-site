@@ -16,7 +16,12 @@ import { Progress } from "@/src/components/ui/progress";
 import { LoginGuideModal } from "./LoginGuideModal";
 
 export default function LoginPage() {
-    // Phones only, and quiet — this is a confirmation, not a fanfare.
+    /**
+     * Only the failure cue lives here, and only for someone who granted sound on
+     * a previous visit — on a first-ever visit nothing has been asked yet, so
+     * this stays silent, which is correct. A rejected sign-in leaves you on this
+     * page, so unlike the success case there is something left to hear it.
+     */
     const sound = useSound(0.5);
     const router = useRouter();
     const { setSession, session } = useProfileStore();
@@ -45,7 +50,9 @@ export default function LoginPage() {
                     return;
                 }
 
-                sound.play("loginSuccess");
+                // Deliberately no success cue here: the hard navigation below
+                // tears this page down within milliseconds, so it would be cut
+                // off mid-note. The dashboard picks up from here.
                 toast.success("You're in", { id: toastId });
                 setSession({
                     profile: result.data.profile,

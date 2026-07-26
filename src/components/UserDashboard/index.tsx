@@ -20,6 +20,8 @@ import { Button } from "@/src/components/ui/button";
 import { Chip } from "@/src/components/ui/chip";
 import { Avatar } from "@/src/components/ui/avatar";
 import GamesSection from "@/src/components/GamesSection";
+import SoundPrompt from "@/src/components/SoundPrompt";
+import { useSound } from "@/src/hooks/useSound";
 import { displayLevelBetter } from "@/src/lib/utils";
 
 export default function UserDashboard() {
@@ -27,6 +29,17 @@ export default function UserDashboard() {
     const session = useProfileStore((state) => state.session);
     const clearSession = useProfileStore((state) => state.clearSession);
     const [visible, setVisible] = useState(false);
+
+    /**
+     * Sound permission is asked here, not on the login page.
+     *
+     * Login is the wrong moment twice over: a permission dialog in front of
+     * someone who hasn't signed in yet is a poor first impression, and the
+     * success cue is inaudible anyway — sign-in hard-navigates to this page
+     * within milliseconds of playing it. The dashboard is the first quiet,
+     * signed-in screen, and answering here covers every game downstream.
+     */
+    const sound = useSound(0.5);
 
     useEffect(() => {
         const t = setTimeout(() => setVisible(true), 50);
@@ -65,6 +78,8 @@ export default function UserDashboard() {
             }`}
         >
             <Ambient />
+
+            <SoundPrompt sound={sound} />
 
             {/* ── Material top app bar ──────────────────────────────────── */}
             <header className="sticky top-0 z-20 -mx-4 mb-2 flex h-16 items-center justify-between gap-3 bg-surface px-4 sm:-mx-6 sm:px-6">
