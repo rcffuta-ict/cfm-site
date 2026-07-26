@@ -13,6 +13,11 @@ import {
     Timer,
     ArrowLeft,
     LayoutDashboard,
+    SlidersHorizontal,
+    Brain,
+    Grid3x3,
+    Zap,
+    BookOpen,
 } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
@@ -23,6 +28,8 @@ import { Progress } from "@/src/components/ui/progress";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
 import QuestionEditor from "@/src/components/GameHost/QuestionEditor";
 import BingoEditor from "@/src/components/GameHost/BingoEditor";
+import BuzzerEditor from "@/src/components/GameHost/BuzzerEditor";
+import { Tabs, TabPanel } from "@/src/components/ui/tabs";
 import { cn } from "@/src/lib/utils";
 
 interface HostRound {
@@ -48,6 +55,12 @@ export default function GameHost() {
     const { state, clockOffset, refetch, offline } = useGameState();
     const [rounds, setRounds] = useState<HostRound[]>([]);
     const [busy, setBusy] = useState(false);
+    /**
+     * The admin runs this from a phone, so the four surfaces are tabs rather
+     * than a long scroll — during a round the host should be one tap from any
+     * control, not hunting down the page.
+     */
+    const [tab, setTab] = useState("control");
 
     const round = state?.round ?? null;
     const remaining = useCountdown(
@@ -139,10 +152,62 @@ export default function GameHost() {
                             <LayoutDashboard /> Dashboard
                         </a>
                     </Button>
+                    <Button
+                        asChild
+                        variant="text"
+                        size="icon"
+                        aria-label="Open the runbook"
+                    >
+                        <a
+                            href="https://claude.ai/code/artifact/8ef29ffd-55b3-4fb9-a0cb-39be51fba320"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <BookOpen />
+                        </a>
+                    </Button>
                 </div>
             </header>
 
+            {!hasSession && (
+                <QuestionEditor
+                    onChanged={() => {
+                        refetch();
+                        loadRounds();
+                    }}
+                />
+            )}
+
             {hasSession && (
+                <>
+                    <Tabs
+                        value={tab}
+                        onChange={setTab}
+                        items={[
+                            {
+                                id: "control",
+                                label: "Control",
+                                icon: <SlidersHorizontal className="size-4" />,
+                            },
+                            {
+                                id: "trivia",
+                                label: "Trivia",
+                                icon: <Brain className="size-4" />,
+                            },
+                            {
+                                id: "bingo",
+                                label: "Bingo",
+                                icon: <Grid3x3 className="size-4" />,
+                            },
+                            {
+                                id: "buzzer",
+                                label: "Buzzer",
+                                icon: <Zap className="size-4" />,
+                            },
+                        ]}
+                    />
+
+                    <TabPanel active={tab === "control"}>
                 <div className="grid gap-4 md:grid-cols-2">
                     {/* ── Now on screen ─────────────────────────────────── */}
                     <Card variant="elevated" className="overflow-hidden">
@@ -296,25 +361,35 @@ export default function GameHost() {
                         </Button>
                     </Card>
                 </div>
-            )}
+                    </TabPanel>
 
-            {/* Authoring lives below the live controls: during the programme the
-                host works at the top of this page, and only comes down here
-                between rounds or while setting up. */}
-            <QuestionEditor
-                onChanged={() => {
-                    refetch();
-                    loadRounds();
-                }}
-            />
+                    <TabPanel active={tab === "trivia"}>
+                        <QuestionEditor
+                            onChanged={() => {
+                                refetch();
+                                loadRounds();
+                            }}
+                        />
+                    </TabPanel>
 
-            {hasSession && (
-                <BingoEditor
-                    onChanged={() => {
-                        refetch();
-                        loadRounds();
-                    }}
-                />
+                    <TabPanel active={tab === "bingo"}>
+                        <BingoEditor
+                            onChanged={() => {
+                                refetch();
+                                loadRounds();
+                            }}
+                        />
+                    </TabPanel>
+
+                    <TabPanel active={tab === "buzzer"}>
+                        <BuzzerEditor
+                            onChanged={() => {
+                                refetch();
+                                loadRounds();
+                            }}
+                        />
+                    </TabPanel>
+                </>
             )}
         </div>
     );

@@ -5,12 +5,14 @@ import {
     DEFAULT_ROUND_CONFIG,
     type GameState,
     type PublicBingo,
+    type PublicBuzzer,
     type PublicQuestion,
     type PublicRound,
     type RoundConfig,
     type SessionStatus,
 } from "@/src/lib/games/types";
 import { parseBingoConfig } from "@/src/lib/games/bingo";
+import { parseBuzzerConfig } from "@/src/lib/games/buzzer";
 
 /**
  * Reading the live game state.
@@ -32,6 +34,7 @@ const EMPTY: Omit<GameState, "serverNow"> = {
     round: null,
     question: null,
     bingo: null,
+    buzzer: null,
     correctIndex: null,
     version: "idle",
 };
@@ -112,6 +115,7 @@ export async function loadGameState(
     let question: PublicQuestion | null = null;
     let correctIndex: number | null = null;
     let bingo: PublicBingo | null = null;
+    let buzzer: PublicBuzzer | null = null;
 
     if (round.type === "trivia") {
         const { data: q } = await supabase
@@ -180,11 +184,69 @@ export async function loadGameState(
         };
     }
 
+    if (round.type === "buzzer") {
+        const config = parseBuzzerConfig(roundRow.config);
+
+        const { data: prompts } = await supabase
+            .from("buzzer_prompts")
+            .select("id, prompt_text, order_index, opened_at")
+            .eq("round_id", round.id)
+            .order("order_index", { ascending: true });
+
+        const list = prompts ?? [];
+        // Which prompt is in play is tracked explicitly on the round rather than
+        // inferred from `opened_at`. Inferring it breaks the moment the host
+        // moves on without opening: every prompt is closed, and "last opened"
+        // would snap back to the top of the list.
+        const currentId = (roundRow.config as { currentPromptId?: string } | null)
+            ?.currentPromptId;
+        const active = list.find((p) => p.id === currentId) ?? list[0] ?? null;
+
+        let presses: PublicBuzzer["presses"] = [];
+        if (active) {
+            const { data: rows } = await supabase
+                .from("buzzer_presses")
+                .select("profile_id, position, reaction_ms, points_awarded")
+                .eq("prompt_id", active.id)
+                .order("position", { ascending: true })
+                .limit(10);
+
+            const ids = (rows ?? []).map((r) => r.profile_id);
+            const nameById = new Map<string, string>();
+            if (ids.length > 0) {
+                const { data: profiles } = await supabase
+                    .from("profiles")
+                    .select("id, first_name, last_name")
+                    .in("id", ids);
+                for (const p of profiles ?? [])
+                    nameById.set(p.id, `${p.first_name} ${p.last_name}`.trim());
+            }
+
+            presses = (rows ?? []).map((r) => ({
+                name: nameById.get(r.profile_id) ?? "Someone",
+                position: r.position,
+                reactionMs: r.reaction_ms ?? null,
+                points: r.points_awarded ?? 0,
+            }));
+        }
+
+        buzzer = {
+            promptId: active?.id ?? null,
+            promptText: active?.prompt_text ?? null,
+            open: !!active?.opened_at,
+            scoringPlaces: config.scoringPlaces,
+            presses,
+            index: active ? list.findIndex((p) => p.id === active.id) : -1,
+            total: list.length,
+        };
+    }
+
     return {
         session: sessionPublic,
         round,
         question,
         bingo,
+        buzzer,
         correctIndex,
         serverNow,
         // Everything a client renders differently is folded in, so an unchanged
@@ -199,6 +261,11 @@ export async function loadGameState(
             // A new call or a new winner has to invalidate the ETag, or phones
             // would sit on a 304 through the whole bingo round.
             bingo ? `b${bingo.called.length}.${bingo.winners.length}` : "-",
+            // A new press has to change the ETag, or the TV would sit on a 304
+            // while the room is watching for the winner.
+            buzzer
+                ? `z${buzzer.promptId ?? "-"}.${buzzer.open ? 1 : 0}.${buzzer.presses.length}`
+                : "-",
         ].join(":"),
     };
 }

@@ -9,7 +9,7 @@ import {
     CalendarDays,
     ChevronRight,
     Zap,
-    Gamepad2,
+    Info,
 } from "lucide-react";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { Ambient } from "@/src/components/common/Ambient";
@@ -17,6 +17,7 @@ import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
 import { Chip } from "@/src/components/ui/chip";
 import { Avatar } from "@/src/components/ui/avatar";
+import GamesSection from "@/src/components/GamesSection";
 import { displayLevelBetter } from "@/src/lib/utils";
 
 export default function UserDashboard() {
@@ -96,51 +97,6 @@ export default function UserDashboard() {
             </header>
 
             <main className="space-y-4">
-                {/* ── Live game ────────────────────────────────────────────
-                    A doorway, not the game itself. During a round the question
-                    should be the only thing on screen, so it gets its own page
-                    — this just gets people there. */}
-                <a
-                    href="/play"
-                    className="state-layer flex items-center gap-4 rounded-xl bg-tertiary p-5 text-on-tertiary shadow-e-1"
-                >
-                    <Gamepad2 className="size-6 shrink-0" />
-                    <span className="min-w-0 flex-1">
-                        <span className="block font-display text-lg font-extrabold leading-tight">
-                            Play the game
-                        </span>
-                        <span className="block text-sm opacity-90">
-                            Enter with your Oracle ID
-                        </span>
-                    </span>
-                    <ChevronRight className="size-5 shrink-0" />
-                </a>
-
-                {/* ── Oracle ID: the reason members open this app ───────── */}
-                <section className="overflow-hidden rounded-xl bg-primary-container shadow-e-1">
-                    <div className="px-6 pt-6 text-center">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-primary-container/80">
-                            Your Oracle ID
-                        </p>
-                    </div>
-
-                    <div className="flex justify-center gap-1.5 px-4 py-5 sm:gap-2.5">
-                        {raffleStr.split("").map((digit, i) => (
-                            <span
-                                key={i}
-                                className="flex h-16 w-11 items-center justify-center rounded-md bg-surface-container-lowest font-display text-3xl font-extrabold text-on-surface sm:h-20 sm:w-14 sm:text-4xl"
-                            >
-                                {digit}
-                            </span>
-                        ))}
-                    </div>
-
-                    <p className="px-6 pb-6 text-center text-sm leading-6 text-on-primary-container/90">
-                        The Oracle draws from everyone registered. Keep an eye on
-                        the big screen.
-                    </p>
-                </section>
-
                 {/* ── Who you are ──────────────────────────────────────── */}
                 <section className="rounded-xl bg-surface-container-low p-5 shadow-e-1">
                     <div className="flex items-center gap-4">
@@ -189,6 +145,37 @@ export default function UserDashboard() {
                     </div>
                 </section>
 
+                {/* ── Oracle ID: the reason members open this app ───────── */}
+                <section className="overflow-hidden rounded-xl bg-primary-container shadow-e-1">
+                    <div className="px-6 pt-6 text-center">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-primary-container/80">
+                            Your Oracle ID
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center gap-1.5 px-4 py-5 sm:gap-2.5">
+                        {raffleStr.split("").map((digit, i) => (
+                            <span
+                                key={i}
+                                className="flex h-16 w-11 items-center justify-center rounded-md bg-surface-container-lowest font-display text-3xl font-extrabold text-on-surface sm:h-20 sm:w-14 sm:text-4xl"
+                            >
+                                {digit}
+                            </span>
+                        ))}
+                    </div>
+
+                    <p className="px-6 pb-6 text-center text-sm leading-6 text-on-primary-container/90">
+                        The Oracle draws from everyone registered. Keep an eye
+                        on the big screen.
+                    </p>
+                </section>
+
+                {/* ── Games: the evening's line-up ─────────────────────────
+                    A bill of what's on, not the games themselves. Playing
+                    happens on /play, which switches itself to whatever the host
+                    has running. */}
+                <GamesSection />
+
                 {/* ── Where to look next ───────────────────────────────── */}
                 <nav className="overflow-hidden rounded-xl bg-surface-container-low shadow-e-1">
                     <DashboardLink
@@ -203,6 +190,13 @@ export default function UserDashboard() {
                         icon={<BarChart3 className="size-5" />}
                         title="Live stats"
                         subtitle="Registration scoreboard"
+                    />
+                    <div className="mx-5 h-px bg-outline-variant" />
+                    <DashboardLink
+                        href="/about"
+                        icon={<Info className="size-5" />}
+                        title="About this event"
+                        subtitle="Details and how the games work"
                     />
                 </nav>
             </main>

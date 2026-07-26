@@ -6,6 +6,7 @@ export const CFM_EVENT_SLUG = process.env.CFM_EVENT_SLUG || "cfm-rcffuta";
 export interface CfmEvent {
     id: string;
     title: string | null;
+    description: string | null;
     date: string | null;
     is_active: boolean | null;
     config: Record<string, unknown> | null;
@@ -55,7 +56,7 @@ export async function getCfmEvent(
 ): Promise<CfmEvent | null> {
     const { data } = await supabase
         .from("events")
-        .select("id, title, date, is_active, config")
+        .select("id, title, description, date, is_active, config")
         .eq("slug", CFM_EVENT_SLUG)
         .maybeSingle();
     return (data as CfmEvent) ?? null;

@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import DeviceWrapper from "@/src/components/common/DeviceWrapper";
 import EventClosed from "@/src/components/common/EventClosed";
 import Footer from "@/src/components/common/Footer";
+import PreviewBanner from "@/src/components/common/PreviewBanner";
 import { getAdminClient } from "@/src/lib/supabase/server";
 import { isEventLive } from "@/src/lib/event";
 import "./globals.css";
@@ -52,6 +53,10 @@ export default async function RootLayout({
             className={`dark ${sans.variable} ${display.variable}`}
         >
             <body>
+                {/* Outside the live/closed branch on purpose — a preview of the
+                    closed state still needs to announce that it's a preview. */}
+                <PreviewBanner />
+
                 {!isLive ? (
                     <EventClosed />
                 ) : (

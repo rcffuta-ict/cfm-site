@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Timer, Lock, CheckCircle2, Megaphone } from "lucide-react";
+import { Trophy, Timer, Lock, CheckCircle2, Megaphone, Zap } from "lucide-react";
+import { formatReaction } from "@/src/lib/games/buzzer";
 import { createBrowserClient } from "@/src/lib/supabase/client";
 import { GAME_CHANNEL, GAME_EVENTS } from "@/src/lib/games/channel";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
@@ -129,6 +130,65 @@ export default function GamesScreen() {
                                         .join("   ·   ")}
                                 </p>
                             )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── Buzzer ──────────────────────────────────────────────── */}
+            {round?.type === "buzzer" && round.status !== "pending" && state?.buzzer && (
+                <div className="flex flex-1 flex-col justify-center gap-[clamp(1rem,3vh,2.5rem)]">
+                    <div className="text-center">
+                        <p
+                            className={cn(
+                                "flex items-center justify-center gap-3 text-[clamp(0.9rem,2vw,1.6rem)] font-semibold uppercase tracking-[0.22em]",
+                                state.buzzer.open
+                                    ? "text-tertiary"
+                                    : "text-on-surface-variant"
+                            )}
+                        >
+                            <Zap className="size-[1.1em]" />
+                            {state.buzzer.open ? "Buzzers open" : "Get ready"}
+                        </p>
+                        <p className="mt-4 font-display text-[clamp(1.8rem,5vw,4.2rem)] font-extrabold leading-[1.1] tracking-tight text-on-surface">
+                            {state.buzzer.promptText ?? "…"}
+                        </p>
+                    </div>
+
+                    {state.buzzer.presses.length === 0 ? (
+                        <p className="text-center text-[clamp(1rem,2.2vw,1.8rem)] text-on-surface-variant">
+                            {state.buzzer.open
+                                ? "Waiting for the first finger…"
+                                : "Buzzers are closed."}
+                        </p>
+                    ) : (
+                        <div className="mx-auto w-full max-w-4xl space-y-[clamp(0.4rem,1vh,0.8rem)]">
+                            {state.buzzer.presses
+                                .slice(0, 5)
+                                .map((press, index) => (
+                                    <div
+                                        key={press.position}
+                                        className={cn(
+                                            "flex items-center gap-5 rounded-lg p-[clamp(0.7rem,1.8vh,1.3rem)]",
+                                            index === 0
+                                                ? "bg-tertiary text-on-tertiary shadow-e-3"
+                                                : press.position <=
+                                                    state.buzzer!.scoringPlaces
+                                                  ? "bg-success-container text-on-success-container"
+                                                  : "bg-surface-container-high text-on-surface"
+                                        )}
+                                    >
+                                        <span className="w-[1.6em] shrink-0 text-center font-display text-[clamp(1.4rem,3.5vw,2.8rem)] font-extrabold leading-none">
+                                            {press.position}
+                                        </span>
+                                        <span className="min-w-0 flex-1 truncate text-[clamp(1.1rem,2.8vw,2.2rem)] font-bold">
+                                            {press.name}
+                                        </span>
+                                        <span className="shrink-0 font-mono text-[clamp(0.85rem,1.8vw,1.4rem)] tabular-nums opacity-85">
+                                            {formatReaction(press.reactionMs)}
+                                        </span>
+                                    </div>
+                                ))}
                         </div>
                     )}
                 </div>

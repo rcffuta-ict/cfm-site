@@ -7,6 +7,7 @@ import { Chip } from "@/src/components/ui/chip";
 import { Progress } from "@/src/components/ui/progress";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
 import BingoPanel from "@/src/components/BingoPanel";
+import BuzzerPanel from "@/src/components/BuzzerPanel";
 import { cn } from "@/src/lib/utils";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
@@ -89,9 +90,12 @@ export default function GamePanel() {
         );
     }
 
-    // ── Bingo runs on its own surface ───────────────────────────────────
+    // ── Each game gets its own surface; the poll decides which ──────────
     if (round && round.type === "bingo" && state?.bingo && round.status !== "pending")
         return <BingoPanel round={round} bingo={state.bingo} />;
+
+    if (round && round.type === "buzzer" && state?.buzzer && round.status !== "pending")
+        return <BuzzerPanel round={round} buzzer={state.buzzer} />;
 
     // ── Nothing live ────────────────────────────────────────────────────
     if (!round || round.status === "pending" || !question) {

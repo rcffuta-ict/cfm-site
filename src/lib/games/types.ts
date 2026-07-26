@@ -58,11 +58,31 @@ export interface PublicBingo {
     winners: { name: string; pattern: string; position: number }[];
 }
 
+/** What the TV and phones need to render a buzzer round. */
+export interface PublicBuzzer {
+    promptId: string | null;
+    promptText: string | null;
+    /** Whether the host has opened it — a closed prompt shows but can't be hit. */
+    open: boolean;
+    scoringPlaces: number;
+    /** Presses so far, fastest first. */
+    presses: {
+        name: string;
+        position: number;
+        reactionMs: number | null;
+        points: number;
+    }[];
+    /** Where this prompt sits in the round, for the "3 of 8" label. */
+    index: number;
+    total: number;
+}
+
 export interface GameState {
     session: { id: string; title: string; status: SessionStatus } | null;
     round: PublicRound | null;
     question: PublicQuestion | null;
     bingo: PublicBingo | null;
+    buzzer: PublicBuzzer | null;
     /**
      * Only ever populated once the round is revealed — while a round is live
      * this is null, so the answer can't be read out of the poll response.

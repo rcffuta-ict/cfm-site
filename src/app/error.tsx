@@ -22,11 +22,13 @@ export default function ErrorPage({
         <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12 text-center">
             <Ambient />
 
-            <CfmIcon width={56} height={56} priority />
+            <div className="flex items-center align-center gap-6 mt-7 ">
+                <CfmIcon width={56} height={56} priority />
 
-            <span className="mt-7 grid h-14 w-14 place-items-center rounded-full bg-error-container text-on-error-container">
-                <TriangleAlert className="size-7" />
-            </span>
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-error-container text-on-error-container">
+                    <TriangleAlert className="size-7" />
+                </span>
+            </div>
 
             <h1 className="mt-5 font-display text-2xl font-extrabold tracking-tight text-on-surface">
                 Something went wrong
