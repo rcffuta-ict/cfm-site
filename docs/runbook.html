@@ -1,0 +1,796 @@
+<title>CFM Live Games — Runbook</title>
+
+<style>
+  :root {
+    --ink:#191924; --ground:#12121a; --raised:#24242f;
+    --line:#3a3a4a; --line-soft:#2b2b38;
+    --text:#eeedf5; --text-dim:#b6b4c8; --text-faint:#85839a;
+    --accent:#f5a3d7; --accent-deep:#7d2a5f; --peri:#b0aef0; --bolt:#f7e388;
+    --good:#91e6b8; --bad:#fca79f;
+    --page:var(--ground); --card:var(--ink); --code-bg:#1e1e2a;
+    --f-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --f-disp: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --f-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --wrap: 74rem;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground:#f7f6fb; --ink:#ffffff; --raised:#f0eff7;
+      --line:#d3d1e2; --line-soft:#e4e2ee;
+      --text:#17161f; --text-dim:#4c4a5e; --text-faint:#6f6d83;
+      --accent:#a3266f; --accent-deep:#f6dcec; --peri:#4a45b0; --bolt:#8a6c05;
+      --good:#1c6c45; --bad:#a52f28;
+      --page:var(--ground); --card:var(--ink); --code-bg:#efedf6;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground:#f7f6fb; --ink:#ffffff; --raised:#f0eff7;
+    --line:#d3d1e2; --line-soft:#e4e2ee;
+    --text:#17161f; --text-dim:#4c4a5e; --text-faint:#6f6d83;
+    --accent:#a3266f; --accent-deep:#f6dcec; --peri:#4a45b0; --bolt:#8a6c05;
+    --good:#1c6c45; --bad:#a52f28;
+    --page:var(--ground); --card:var(--ink); --code-bg:#efedf6;
+  }
+  :root[data-theme="dark"] {
+    --ground:#12121a; --ink:#191924; --raised:#24242f;
+    --line:#3a3a4a; --line-soft:#2b2b38;
+    --text:#eeedf5; --text-dim:#b6b4c8; --text-faint:#85839a;
+    --accent:#f5a3d7; --accent-deep:#7d2a5f; --peri:#b0aef0; --bolt:#f7e388;
+    --good:#91e6b8; --bad:#fca79f;
+    --page:var(--ground); --card:var(--ink); --code-bg:#1e1e2a;
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--text); font-family:var(--f-sans);
+         font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .shell { max-width:var(--wrap); margin:0 auto; padding:0 1.5rem 6rem; }
+
+  header.masthead { padding:4rem 0 2.5rem; border-bottom:1px solid var(--line); margin-bottom:3rem; }
+  .eyebrow { font-family:var(--f-mono); font-size:0.72rem; letter-spacing:0.16em;
+             text-transform:uppercase; color:var(--accent); margin:0 0 1rem; }
+  h1 { font-family:var(--f-disp); font-size:clamp(2.4rem,6vw,4rem); font-weight:800;
+       letter-spacing:-0.035em; line-height:1.02; text-wrap:balance; margin:0 0 1rem; }
+  .standfirst { font-size:clamp(1.02rem,1.7vw,1.18rem); color:var(--text-dim); max-width:62ch; margin:0; }
+
+  .layout { display:block; }
+  @media (min-width:62rem) {
+    .layout { display:grid; grid-template-columns:15rem minmax(0,1fr); gap:4rem; align-items:start; }
+    nav.rail { position:sticky; top:2rem; }
+  }
+  nav.rail ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.1rem; }
+  nav.rail a { display:block; padding:0.35rem 0; font-size:0.86rem; color:var(--text-faint);
+               text-decoration:none; border-left:2px solid transparent; padding-left:0.85rem;
+               transition:color .15s, border-color .15s; }
+  nav.rail a:hover, nav.rail a:focus-visible { color:var(--text); border-left-color:var(--accent); }
+  nav.rail .rail-head { font-family:var(--f-mono); font-size:0.66rem; letter-spacing:0.16em;
+                        text-transform:uppercase; color:var(--text-faint);
+                        padding:1.4rem 0 0.5rem 0.85rem; border-left:2px solid transparent; }
+  nav.rail .rail-head:first-child { padding-top:0; }
+
+  main { min-width:0; display:flex; flex-direction:column; gap:3.5rem; }
+  section { scroll-margin-top:2rem; }
+  h2 { font-family:var(--f-disp); font-size:clamp(1.5rem,3vw,2rem); font-weight:800;
+       letter-spacing:-0.028em; line-height:1.15; text-wrap:balance; margin:0 0 0.5rem;
+       display:flex; align-items:baseline; gap:0.7rem; flex-wrap:wrap; }
+  h3 { font-family:var(--f-disp); font-size:1.06rem; font-weight:700;
+       letter-spacing:-0.012em; margin:2rem 0 0.6rem; }
+  p { margin:0 0 1rem; max-width:68ch; }
+  main > section > p:last-child { margin-bottom:0; }
+  .lede { color:var(--text-dim); margin-bottom:1.75rem; }
+
+  .role { font-family:var(--f-mono); font-size:0.6rem; letter-spacing:0.14em;
+          text-transform:uppercase; padding:0.22rem 0.5rem; border-radius:3px;
+          border:1px solid var(--line); color:var(--text-faint); white-space:nowrap;
+          transform:translateY(-0.18em); }
+  .role.ict { color:var(--peri); border-color:color-mix(in srgb, var(--peri) 45%, transparent); }
+  .role.host { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+  .role.member { color:var(--good); border-color:color-mix(in srgb, var(--good) 45%, transparent); }
+
+  code { font-family:var(--f-mono); font-size:0.855em; background:var(--code-bg);
+         border:1px solid var(--line-soft); border-radius:4px; padding:0.12em 0.38em;
+         word-break:break-word; }
+  pre { font-family:var(--f-mono); font-size:0.845rem; line-height:1.6; background:var(--code-bg);
+        border:1px solid var(--line-soft); border-radius:8px; padding:1rem 1.15rem;
+        overflow-x:auto; margin:0 0 1rem; }
+  pre code { background:none; border:0; padding:0; font-size:inherit; }
+  .c { color:var(--text-faint); }
+
+  ol.steps { list-style:none; counter-reset:s; margin:0; padding:0; display:flex;
+             flex-direction:column; gap:1.4rem; }
+  ol.steps > li { counter-increment:s; position:relative; padding-left:2.9rem; max-width:70ch; }
+  ol.steps > li::before { content:counter(s); position:absolute; left:0; top:0; width:1.9rem;
+        height:1.9rem; display:grid; place-items:center; font-family:var(--f-mono);
+        font-size:0.78rem; font-weight:600; color:var(--accent); background:var(--accent-deep);
+        border-radius:50%; }
+  ol.steps h4 { font-family:var(--f-disp); font-size:0.98rem; font-weight:700;
+                margin:0.1rem 0 0.35rem; letter-spacing:-0.01em; }
+  ol.steps p { margin:0 0 0.6rem; }
+  ol.steps > li > *:last-child { margin-bottom:0; }
+
+  ul.plain { margin:0 0 1rem; padding-left:1.15rem; max-width:68ch; }
+  ul.plain li { margin-bottom:0.45rem; }
+  ul.plain li::marker { color:var(--text-faint); }
+
+  .tablewrap { overflow-x:auto; margin:0 0 1rem; border:1px solid var(--line-soft); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:0.9rem; min-width:34rem; }
+  th, td { text-align:left; padding:0.72rem 0.95rem; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  thead th { font-family:var(--f-mono); font-size:0.66rem; letter-spacing:0.13em;
+             text-transform:uppercase; color:var(--text-faint); font-weight:600; background:var(--raised); }
+  tbody tr:last-child td { border-bottom:0; }
+  td code { white-space:nowrap; }
+
+  .note { border-left:3px solid var(--line); padding:0.15rem 0 0.15rem 1.1rem;
+          color:var(--text-dim); margin:0 0 1rem; max-width:66ch; }
+  .note.warn { border-left-color:var(--bolt); }
+  .note.stop { border-left-color:var(--bad); }
+  .note strong { color:var(--text); }
+
+  .cards { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); margin-bottom:1rem; }
+  .card { background:var(--card); border:1px solid var(--line-soft); border-radius:10px; padding:1.15rem 1.25rem; }
+  .card h4 { font-family:var(--f-disp); font-size:0.95rem; font-weight:700; margin:0 0 0.3rem; }
+  .card p { font-size:0.9rem; color:var(--text-dim); margin:0; }
+  .card .k { font-family:var(--f-mono); font-size:1.35rem; font-weight:600; color:var(--accent);
+             display:block; line-height:1.1; margin-bottom:0.3rem; }
+
+  .flow { display:flex; flex-wrap:wrap; gap:0.45rem; align-items:center; margin:0 0 1.25rem; }
+  .flow span { font-family:var(--f-mono); font-size:0.76rem; padding:0.34rem 0.62rem;
+               border-radius:5px; background:var(--raised); border:1px solid var(--line-soft); color:var(--text); }
+  .flow i { color:var(--text-faint); font-style:normal; }
+
+  hr.rule { border:0; border-top:1px solid var(--line-soft); margin:0; }
+  footer { margin-top:4rem; padding-top:2rem; border-top:1px solid var(--line);
+           color:var(--text-faint); font-size:0.85rem; }
+  a { color:var(--accent); }
+  a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="eyebrow">RCF FUTA · ICT Team</p>
+    <h1>CFM Live Games Runbook</h1>
+    <p class="standfirst">
+      How to set up, run, and play the Oracle draw, trivia, bingo and the buzzer —
+      from the laptop on the church wifi to the phone in someone's hand.
+    </p>
+  </header>
+
+  <div class="layout">
+
+    <nav class="rail" aria-label="Contents">
+      <ol>
+        <li class="rail-head">Orientation</li>
+        <li><a href="#what">What's built</a></li>
+        <li><a href="#shape">How it's wired</a></li>
+        <li class="rail-head">Before the night</li>
+        <li><a href="#setup">Laptop setup</a></li>
+        <li><a href="#sound">Sound</a></li>
+        <li><a href="#authoring">Setting up the games</a></li>
+        <li class="rail-head">On the night</li>
+        <li><a href="#oracle">Running the Oracle</a></li>
+        <li><a href="#trivia">Running trivia</a></li>
+        <li><a href="#bingo">Running bingo</a></li>
+        <li><a href="#buzzer">Running the buzzer</a></li>
+        <li><a href="#play">Playing along</a></li>
+        <li><a href="#network">Network trouble</a></li>
+        <li class="rail-head">Reference</li>
+        <li><a href="#screens">Every screen</a></li>
+        <li><a href="#scoring">How scoring works</a></li>
+        <li><a href="#trouble">When things break</a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="what">
+        <h2>What's built <span class="role ict">ICT</span></h2>
+        <p class="lede">Four things: the <strong>Oracle</strong> raffle draw, plus
+        <strong>trivia</strong>, <strong>bingo</strong> and the <strong>buzzer</strong>.</p>
+
+        <div class="cards">
+          <div class="card">
+            <h4>Oracle draw</h4>
+            <p>Runs entirely on the venue laptop — no internet in the draw path.
+            Includes a waiting room that stops the same number surfacing repeatedly.</p>
+          </div>
+          <div class="card">
+            <h4>Trivia</h4>
+            <p>One question per round. Start → Lock → Reveal → Next, with faster
+            correct answers scoring more.</p>
+          </div>
+          <div class="card">
+            <h4>Bingo</h4>
+            <p>Everyone gets a shuffled card from one shared list. The host calls
+            items; players mark their own squares and claim a line.</p>
+          </div>
+          <div class="card">
+            <h4>Buzzer</h4>
+            <p>First finger wins. The order is decided inside the database, so two
+            simultaneous presses get 1st and 2nd — never a tie.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          All three games share one leaderboard and one <code>/play</code> screen,
+          which switches itself to whatever the host has running. Members never pick
+          a game.
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="shape">
+        <h2>How it's wired <span class="role ict">ICT</span></h2>
+        <p class="lede">The same codebase runs in two places, and which one serves a
+        screen matters.</p>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Runs on</th><th>Serves</th><th>Why there</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Venue laptop</strong><br><span style="color:var(--text-faint)">church wifi, LAN only</span></td>
+                <td><code>/admin</code> Oracle console<br><code>/oracle</code> TV screen</td>
+                <td>The draw must not depend on the internet. Members come from a
+                local snapshot and the command reaches the TV over an in-process feed.</td>
+              </tr>
+              <tr>
+                <td><strong>Cloud (Vercel)</strong><br><span style="color:var(--text-faint)">public HTTPS</span></td>
+                <td><code>/admin/games</code> host panel<br><code>/games</code> TV screen<br><code>/play</code> members<br><code>/stats</code>, <code>/about</code>, <code>/network</code></td>
+                <td>Game data comes from hundreds of phones, so it needs somewhere
+                they can all reach.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <strong>The TV computer opens two different addresses.</strong>
+          <code>/oracle</code> from the laptop's LAN address, and <code>/games</code>
+          plus <code>/stats</code> from the public site.
+        </div>
+
+        <h3>Preview vs production</h3>
+        <p>Any <strong>preview</strong> build shows a loud striped banner across the
+        top of every page saying <strong>Preview build</strong>, with the branch name.
+        Production shows nothing.</p>
+        <div class="note">
+          If you can see that banner, you are <em>not</em> on the app members are
+          using. Check for it before the programme starts.
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="setup">
+        <h2>Laptop setup <span class="role ict">ICT</span></h2>
+        <p class="lede">Do this before the hall fills up, while you still have good
+        internet.</p>
+
+        <ol class="steps">
+          <li>
+            <h4>Run the database migrations</h4>
+            <p>Once per Supabase project, in the SQL editor, in this order:</p>
+<pre><code>docs/games-schema.sql     <span class="c"># sessions, rounds, trivia</span>
+docs/bingo-schema.sql     <span class="c"># cards, calls, marks, wins</span>
+docs/buzzer-schema.sql    <span class="c"># prompts, presses, buzzer_press()</span></code></pre>
+            <p>All three are safe to re-run.</p>
+          </li>
+          <li>
+            <h4>Set the environment</h4>
+            <p>On the laptop only, alongside the usual Supabase variables:</p>
+<pre><code>ORACLE_LOCAL=1</code></pre>
+            <div class="note stop">
+              <strong>Skip this and the admin cannot log in on the laptop.</strong> A
+              production build marks the session cookie <code>secure</code>, and
+              browsers silently discard secure cookies on a plain-HTTP address like
+              <code>http://192.168.1.20:3000</code>. Login appears to succeed, then
+              nothing happens. It never reproduces on <code>localhost</code>, which
+              browsers treat as secure — so it only shows up when you test from a
+              second device. Never set this on the cloud deployment.
+            </div>
+          </li>
+          <li>
+            <h4>Build and start, bound to the network</h4>
+<pre><code>pnpm build
+pnpm start -H 0.0.0.0 -p 3000</code></pre>
+          </li>
+          <li>
+            <h4>Find the laptop's address</h4>
+<pre><code>hostname -I        <span class="c"># e.g. 192.168.1.20</span></code></pre>
+          </li>
+          <li>
+            <h4>Log in from the admin's phone</h4>
+            <p>Open <code>http://&lt;laptop-ip&gt;:3000/admin</code> on the actual
+            phone that will run the draw. Doing this from a second device — not the
+            laptop — is the only way to confirm the cookie fix works.</p>
+          </li>
+          <li>
+            <h4>Sync members</h4>
+            <p>On the Oracle console, press <strong>Refresh members</strong>. This is
+            the one moment the Oracle talks to Supabase.</p>
+          </li>
+          <li>
+            <h4>Open the TV screens, then turn on sound</h4>
+            <p><code>http://&lt;laptop-ip&gt;:3000/oracle</code> full-screen, plus the
+            public <code>/games</code> in a second tab. On <code>/games</code>, click
+            <strong>Tap anywhere to turn on sound</strong> — see below.</p>
+          </li>
+        </ol>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="sound">
+        <h2>Sound <span class="role ict">ICT</span></h2>
+        <p class="lede">The TV drives the room through the church PA. Phones stay
+        quiet and tactile.</p>
+
+        <div class="note stop">
+          <strong>The TV needs one click before it will make any sound.</strong>
+          Browsers refuse to start audio until someone interacts with the page, and
+          nobody touches a TV once it's set up. <code>/games</code> covers itself with
+          a full-screen <strong>Tap anywhere to turn on sound</strong> prompt until
+          you deal with it. Do this while setting up, and check the level on the sound
+          desk at the same time — not at 5pm with a full hall.
+        </div>
+
+        <h3>Adding the sound files</h3>
+        <p>The game ships with simple synthesised tones so it is never silent, but
+        real recordings are what make it feel like a game show. Drop files into
+        <code>public/sounds/</code> using the names below and they take over
+        automatically on the next load — no code change, and you can add them one
+        at a time.</p>
+
+        <div class="note">
+          <strong>You don't need all sixteen.</strong> Cues without a file of their
+          own borrow a neighbour's — <code>login-success</code> uses
+          <code>locked-in</code>, <code>login-error</code> uses <code>lock</code>,
+          <code>join</code> uses <code>reveal</code>, and <code>oracle-reveal</code>
+          uses <code>winner</code>. Anything with no file and no neighbour falls back
+          to a synthesised tone, so nothing is ever silent. A real file always wins.
+        </div>
+
+        <div class="note">
+          <strong>Any of <code>.mp3</code>, <code>.wav</code>, <code>.ogg</code> or
+          <code>.m4a</code> works</strong> — use whatever you found, no conversion
+          needed. Only the name has to match: <code>buzzed.wav</code> and
+          <code>buzzed</code> are equally valid. MP3 is smaller, which matters if
+          you're loading all sixteen over the venue's connection.
+        </div>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>File</th><th>Plays on</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td><code>buzzed</code></td><td>TV + phone</td><td>Someone hits the buzzer. The classic quiz <strong>BZZZT</strong> — the most important file of the set.</td></tr>
+              <tr><td><code>buzzer-open</code></td><td>TV</td><td>Host opens the buzzer. A start gun.</td></tr>
+              <tr><td><code>round-start</code></td><td>TV</td><td>A trivia question appears.</td></tr>
+              <tr><td><code>tick</code> / <code>tick-urgent</code></td><td>TV</td><td>The last 10 seconds, then the last 5.</td></tr>
+              <tr><td><code>lock</code></td><td>TV</td><td>Answers close.</td></tr>
+              <tr><td><code>reveal</code></td><td>TV</td><td>Correct answer shown.</td></tr>
+              <tr><td><code>call</code></td><td>TV</td><td>A bingo item is called.</td></tr>
+              <tr><td><code>bingo-win</code></td><td>TV + phone</td><td>Someone gets bingo.</td></tr>
+              <tr><td><code>winner</code></td><td>TV</td><td>Final standings.</td></tr>
+              <tr><td><code>tap</code> / <code>locked-in</code></td><td>Phone</td><td>A tap, and an accepted answer.</td></tr>
+              <tr><td><code>spin</code></td><td>Oracle TV</td><td>Loops while the reels turn. <strong>Must loop seamlessly</strong> — trim it to whole reel clicks with no silence at either end.</td></tr>
+              <tr><td><code>spin-land</code></td><td>Oracle TV</td><td>The reels stop and the number lands.</td></tr>
+              <tr><td><code>oracle-reveal</code></td><td>Oracle TV</td><td>The winner's name appears.</td></tr>
+              <tr><td><code>login-success</code> / <code>login-error</code> / <code>join</code></td><td>Phone</td><td>Signing in, failing to, and joining the game.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <strong>Trim the silence off the front of every file</strong>, especially
+          <code>buzzed</code>. Leading silence becomes audible lag.
+        </div>
+
+        <div class="note">
+          Sound never delays anything real. A tap sends its request <em>before</em>
+          any sound or vibration starts, and audio failures are swallowed — so a
+          missing file, a muted phone, or a browser that refuses to play can never
+          cost someone a buzzer place or a speed bonus.
+        </div>
+
+        <p>Free, no-attribution sources: <a href="https://pixabay.com/sound-effects/">Pixabay</a>,
+        <a href="https://mixkit.co/free-sound-effects/game-show/">Mixkit</a>, or
+        Freesound filtered to CC0. Search for <em>quiz buzzer</em>, <em>game show
+        correct</em>, <em>countdown tick</em>, <em>bingo bell</em>.</p>
+
+        <div class="note warn">
+          <strong>The Oracle screen has its own sound gate.</strong> It's a separate
+          page on a separate address, so turning on sound at <code>/games</code> does
+          nothing for <code>/oracle</code>. Do both while setting up.
+        </div>
+
+        <h3>Where the files live</h3>
+        <p><code>public/sounds/</code> in the repo. They're served as ordinary static
+        files, but <em>where</em> they sit doesn't affect playback speed: every cue is
+        fetched and decoded into memory the moment you turn on sound, so playing one
+        is a memory read, not a disk or network fetch. That's why turning on sound
+        during setup — not at 5pm — matters.</p>
+        <div class="note">
+          Keep an eye on total size. WAV files are large (a few MB each); the whole
+          folder is downloaded once when sound is enabled. MP3 at ~128kbps is a
+          fraction of the size for no audible loss on a PA.
+        </div>
+
+        <h3>On phones</h3>
+        <p>Members get small confirmation sounds and haptics, at half volume, with a
+        mute button in the corner of the play screen. They deliberately do
+        <em>not</em> get the round-transition fanfare — 500 phones playing it would
+        fight the PA rather than support it.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="authoring">
+        <h2>Setting up the games <span class="role host">HOST</span></h2>
+        <p class="lede">All from <code>/admin/games</code>. The page is four tabs.</p>
+
+        <div class="flow">
+          <span>Control</span><i>·</i><span>Trivia</span><i>·</i>
+          <span>Bingo</span><i>·</i><span>Buzzer</span>
+        </div>
+
+        <p>If no session exists yet, the Trivia tab offers <strong>Create session</strong>.
+        One live session per event — creating a new one ends any previous, which is
+        also how you clear rehearsal scores off the leaderboard.</p>
+
+        <h3>Trivia questions</h3>
+        <p>Add a question, fill two to six options, tap the circle beside the correct
+        one. Arrows on the left reorder the run of show.</p>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Action</th><th>Allowed when</th><th>What happens</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Edit</strong></td><td>Nobody has answered yet, and it isn't on screen</td><td>Changes wording, options, correct answer, points, timer.</td></tr>
+              <tr><td><strong>Disable</strong></td><td>Any time except while on screen</td><td>Stays in the list but is skipped, and can't be started by mistake.</td></tr>
+              <tr><td><strong>Delete</strong></td><td>Any time except while on screen</td><td>Removes it and any answers given — those points leave the leaderboard.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <strong>Once someone answers, editing is locked.</strong> Changing the
+          correct option after people have been scored would silently invalidate their
+          points. Disable it instead.
+        </div>
+
+        <h3>Bingo list</h3>
+        <p>One item per line. Choose the card size (3×3 to 5×5), whether the centre
+        square is free, and whether winning needs any line or a full house. A 5×5 card
+        with a free centre needs <strong>24 items</strong> minimum.</p>
+
+        <div class="note warn">
+          <strong>The list locks once cards are handed out.</strong> Cards store
+          positions in the list, so editing it afterwards would change what's printed
+          on cards already in play. Use <strong>Reset</strong> to start over.
+        </div>
+
+        <h3>Buzzer prompts</h3>
+        <p>One prompt per line. Set how many places score and the points for first.
+        Prompts already buzzed on are kept when you save; the rest are replaced.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="oracle">
+        <h2>Running the Oracle <span class="role host">HOST</span></h2>
+        <p class="lede">From <code>/admin</code> on the laptop's LAN address.</p>
+
+        <div class="flow">
+          <span>Pick filters</span><i>→</i><span>Roll the Oracle</span><i>→</i>
+          <span>Reveal</span><i>→</i><span>Reset</span>
+        </div>
+
+        <h3>The waiting room</h3>
+        <p>Every drawn number sits out the next few draws. Default is
+        <strong>3</strong>; set it to <strong>0</strong> to turn cooldown off. The
+        queue lives on the laptop, so refreshing the console, switching phones, or
+        restarting the server doesn't reset it.</p>
+
+        <div class="note">
+          <strong>If the pool is smaller than the cooldown</strong> — say four 500L
+          sisters with three slots — the Oracle relaxes the cooldown one step at a
+          time rather than giving up. It will never repeat the person who just went.
+        </div>
+
+        <h3>Keeping the snapshot fresh</h3>
+        <p>People keep registering at the door. The console shows how many members are
+        loaded and how long ago they synced, and warns once it's older than about ten
+        minutes. <strong>Re-sync and clear the waiting room before the real
+        programme.</strong></p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="trivia">
+        <h2>Running trivia <span class="role host">HOST</span></h2>
+        <p class="lede">Control tab. Four buttons, once per question.</p>
+
+        <div class="flow">
+          <span>Start</span><i>→</i><span>Lock</span><i>→</i>
+          <span>Reveal</span><i>→</i><span>Next</span>
+        </div>
+
+        <ul class="plain">
+          <li><strong>Start</strong> — puts the question on the TV and opens answers.</li>
+          <li><strong>Lock</strong> — closes answers early; it locks itself at zero.</li>
+          <li><strong>Reveal</strong> — shows the correct option, with the leaderboard.</li>
+          <li><strong>Next</strong> — moves on, skipping disabled questions.</li>
+        </ul>
+
+        <p><strong>End session</strong> stops everything for the whole room. Confirmed
+        first, because playing again means creating a new session.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="bingo">
+        <h2>Running bingo <span class="role host">HOST</span></h2>
+        <p class="lede">Bingo tab. Open-ended — no timer — until people start winning.</p>
+
+        <ul class="plain">
+          <li><strong>Start bingo</strong> — hands everyone a card. Cards are generated
+          once and kept, so refreshing a phone never reshuffles one.</li>
+          <li><strong>Call next</strong> — picks at random from what's left, or tap a
+          specific item if you're reading from paper.</li>
+          <li><strong>Undo last</strong> — for a misread. This also removes the marks
+          players made against that item, so nobody keeps phantom progress.</li>
+          <li><strong>Reset</strong> — clears every card, mark, call and win.</li>
+        </ul>
+
+        <div class="note">
+          <strong>Players cannot mark ahead.</strong> The server refuses any square
+          whose item hasn't been called, so a claim only has to prove the marks form a
+          line.
+        </div>
+
+        <h3>Helpers</h3>
+        <p>By default, phones show <em>only</em> the card — players must listen to the
+        caller and watch the big screen. Setting <code>GAME_HELPERS=1</code> turns on
+        assistance: called squares get tinted, and phones list what's already been
+        announced.</p>
+        <div class="note">
+          Helpers make bingo markedly easier and pull attention off the caller. Useful
+          for a rehearsal or a gentler room; leave them off for the real thing.
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="buzzer">
+        <h2>Running the buzzer <span class="role host">HOST</span></h2>
+        <p class="lede">Buzzer tab. Read the prompt aloud, then open it.</p>
+
+        <ul class="plain">
+          <li><strong>Open buzzer</strong> — starts the race. This is the instant every
+          reaction time is measured from, and nothing can be pressed before it.</li>
+          <li><strong>Close</strong> — stops further presses without clearing the result.</li>
+          <li><strong>Next / Previous</strong> — the new prompt stays shut until you
+          open it deliberately, so nobody buzzes on a question you haven't read out.</li>
+          <li><strong>Clear this prompt's presses</strong> — re-run the same prompt cleanly.</li>
+        </ul>
+
+        <div class="note">
+          <strong>Ties are impossible.</strong> Position is allocated by the database
+          inside a single statement, so two people pressing in the same millisecond get
+          1st and 2nd. Nothing depends on phone clocks — only on when the press
+          actually reached the server. Tested at 60 simultaneous presses: 60 distinct
+          places, no gaps.
+        </div>
+
+        <p>The TV shows first place across the full width, with runners-up in a grid —
+        a TV can't be scrolled, so places have to fit sideways.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="play">
+        <h2>Playing along <span class="role member">MEMBER</span></h2>
+        <p class="lede">What to tell the hall.</p>
+
+        <ol class="steps">
+          <li>
+            <h4>Open the app and find Games</h4>
+            <p>The dashboard has a <strong>Games</strong> section listing what's on
+            tonight, with anything running marked <strong>Live</strong>.</p>
+          </li>
+          <li>
+            <h4>Enter your Oracle ID</h4>
+            <p>The same number on your dashboard. It only accepts <em>your</em> number,
+            so there's nothing to share or guess. Once you're in, you stay in —
+            refreshing, locking the phone, or switching device all bring you back.</p>
+          </li>
+          <li>
+            <h4>Play whatever's running</h4>
+            <p>One screen handles all three games and switches itself.</p>
+            <ul class="plain">
+              <li><strong>Trivia</strong> — tap an option; it locks in immediately. One
+              answer per question, and faster correct answers score more.</li>
+              <li><strong>Bingo</strong> — tap squares as they're called. A square that
+              hasn't been called won't mark. Hit <strong>BINGO!</strong> on a line.</li>
+              <li><strong>Buzzer</strong> — hit the big button the moment it turns on.
+              You'll see your place and reaction time straight away.</li>
+            </ul>
+          </li>
+        </ol>
+
+        <div class="note">
+          On patchy data a tap confirms straight away and settles in the background.
+          If a submission genuinely fails, a <strong>tap to retry</strong> button
+          appears — the answer isn't silently lost.
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="network">
+        <h2>Network trouble <span class="role member">MEMBER</span></h2>
+        <p class="lede">The single biggest thing that made the beta feel unfair.</p>
+
+        <p>Someone on a weak signal loses a buzzer race and assumes they were slow.
+        They have no way of knowing the network was the problem. So the app now tells
+        them.</p>
+
+        <ul class="plain">
+          <li><strong>A warning appears by itself</strong> when a phone's connection
+          goes bad for a sustained stretch — measured from the polling the app is
+          already doing, so it costs nothing extra. It fires once, waits 90 seconds
+          before repeating, and says "Connection's back" on recovery.</li>
+          <li><strong><code>/network</code></strong> is a connection check anyone can
+          run, linked from the dashboard. It reports round-trip time and lost requests
+          with plain advice.</li>
+        </ul>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Round trip</th><th>Verdict</th><th>What it means</th></tr></thead>
+            <tbody>
+              <tr><td>Under 300ms</td><td><strong>Strong</strong></td><td>Competitive on every game, buzzer included.</td></tr>
+              <tr><td>300–800ms</td><td><strong>Workable</strong></td><td>Fine for trivia and bingo; a real handicap on the buzzer.</td></tr>
+              <tr><td>Over 800ms</td><td><strong>Weak</strong></td><td>Answers may land late or get lost.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          That asymmetry is real. The buzzer is decided by the order presses reach the
+          server, so latency is a <em>direct</em> handicap. Trivia's speed bonus decays
+          gently over the whole round, so a few hundred milliseconds costs a point or
+          two, not the answer. If the venue's network is poor, lean on trivia and bingo.
+        </div>
+
+        <p>Advice worth repeating from the front: move away from the middle of the
+        crowd, try switching between wifi and mobile data, or toggle flight mode to
+        grab a fresh signal.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="screens">
+        <h2>Every screen <span class="role ict">ICT</span></h2>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Address</th><th>Who opens it</th><th>Needs login</th></tr></thead>
+            <tbody>
+              <tr><td><code>/admin</code> <span style="color:var(--text-faint)">laptop LAN</span></td><td>Admin phone — Oracle draw</td><td>Yes, admin</td></tr>
+              <tr><td><code>/oracle</code> <span style="color:var(--text-faint)">laptop LAN</span></td><td>TV computer</td><td>No</td></tr>
+              <tr><td><code>/admin/games</code></td><td>Host — four tabs of game controls</td><td>Yes, admin</td></tr>
+              <tr><td><code>/games</code></td><td>TV computer — all three games + sound</td><td>No</td></tr>
+              <tr><td><code>/stats</code></td><td>TV computer — registration counts</td><td>No</td></tr>
+              <tr><td><code>/play</code></td><td>Members — all three games</td><td>Yes</td></tr>
+              <tr><td><code>/network</code></td><td>Anyone — connection check</td><td>No</td></tr>
+              <tr><td><code>/about</code></td><td>Anyone — event details and this runbook</td><td>Yes</td></tr>
+              <tr><td><code>/</code></td><td>Members — dashboard, games list, Oracle ID</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Environment variables</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Name</th><th>Where</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>ORACLE_LOCAL</code></td><td>Laptop only</td><td>Set to <code>1</code>. Allows the session cookie over plain HTTP on the LAN.</td></tr>
+              <tr><td><code>GAME_HELPERS</code></td><td>Optional, either</td><td>Set to <code>1</code> to turn on bingo assistance. Off by default. Changeable without a rebuild.</td></tr>
+              <tr><td><code>CFM_EVENT_SLUG</code></td><td>Both</td><td>Which event row this deployment is bound to. Drives <code>/about</code>.</td></tr>
+              <tr><td><code>ADMIN</code></td><td>Both</td><td>Leadership position slug whose holder is admin.</td></tr>
+              <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Both</td><td>Database access, and the secret that signs session cookies. Rotating it signs everyone out.</td></tr>
+              <tr><td><code>VERCEL_ENV</code></td><td>Vercel, automatic</td><td>Drives the preview banner. Nothing to set.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>A full annotated template lives in <code>.env.example</code>.</p>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="scoring">
+        <h2>How scoring works <span class="role host">HOST</span></h2>
+        <p class="lede">One leaderboard, split by game.</p>
+
+        <div class="cards">
+          <div class="card"><span class="k">Trivia</span><h4>Base + speed</h4><p>100 by default, plus up to 50 more — full at the start, zero at the buzzer. Wrong answers score nothing.</p></div>
+          <div class="card"><span class="k">Bingo</span><h4>Place-based</h4><p>300 for the first line, then progressively less, floored at 20% so late winners still count.</p></div>
+          <div class="card"><span class="k">Buzzer</span><h4>Fastest fingers</h4><p>200 for first, half for second, a third for third. Past the scoring places a press counts but earns nothing.</p></div>
+        </div>
+
+        <p>The TV board shows each person's split — <strong>T</strong> for trivia,
+        <strong>B</strong> for bingo, <strong>Z</strong> for buzzer — alongside the
+        total it's sorted by. Only people who have actually scored are listed; a board
+        padded with zeros reads as broken on a big screen.</p>
+
+        <div class="note">
+          Every score is calculated on the server from the database's own record of
+          when a round opened. Nothing a phone reports can change it.
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- ─────────────────────────────────────────────── -->
+      <section id="trouble">
+        <h2>When things break <span class="role ict">ICT</span></h2>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>What you see</th><th>What it means</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td>Admin logs in on the laptop and lands back on the login page</td><td>Session cookie discarded — <code>secure</code> flag on a plain-HTTP address</td><td>Set <code>ORACLE_LOCAL=1</code> and restart. Test from a phone, not the laptop.</td></tr>
+              <tr><td><strong>No sound from the TV</strong></td><td>The browser's autoplay gate is still closed</td><td>Click the <strong>Tap anywhere to turn on sound</strong> overlay on <code>/games</code>. If it's gone, use the speaker icon in the header.</td></tr>
+              <tr><td>Sound works but feels thin</td><td><code>public/sounds/</code> is empty, so cues are the synthesised fallback</td><td>Add the MP3s listed in that folder's README.</td></tr>
+              <tr><td>Roll button says <strong>Sync members first</strong></td><td>No snapshot on this laptop</td><td>Press <strong>Refresh members</strong>. Needs internet.</td></tr>
+              <tr><td>Oracle TV sits on "Connecting…"</td><td>The TV can't reach the laptop</td><td>Check both are on the venue wifi and the address is right.</td></tr>
+              <tr><td>"Oracle didn't respond — check the laptop"</td><td>The roll took longer than four seconds</td><td>Confirm the server is running, then roll again. Nothing was drawn.</td></tr>
+              <tr><td>"Pool too small — cooldown relaxed"</td><td>Fewer eligible people than cooldown slots</td><td>Working as intended.</td></tr>
+              <tr><td>Can't edit a trivia question</td><td>Someone has already answered it</td><td>Disable it, or delete it and write a new one.</td></tr>
+              <tr><td>Can't edit the bingo list</td><td>Cards have been handed out</td><td>Reset the bingo, which clears cards and lets you edit again.</td></tr>
+              <tr><td>A bingo square won't mark</td><td>That item hasn't been called</td><td>Working as intended — it's what stops marking ahead.</td></tr>
+              <tr><td>Buzzer button is grey</td><td>The host hasn't opened the prompt</td><td>Press <strong>Open buzzer</strong> in the Buzzer tab.</td></tr>
+              <tr><td>Players complain they keep losing the buzzer</td><td>Often their connection, not their speed</td><td>Point them at <code>/network</code>. Lean on trivia and bingo if the venue's signal is poor.</td></tr>
+              <tr><td><code>syntax error at or near "position"</code> running the buzzer SQL</td><td>An older copy of the migration</td><td>Use the current <code>docs/buzzer-schema.sql</code> and re-run the whole file.</td></tr>
+              <tr><td>Rehearsal scores on the leaderboard</td><td>Still the same session</td><td>Create a fresh session from <code>/admin/games</code> — that ends the old one and clears the board.</td></tr>
+              <tr><td>Members see "The game hasn't started yet"</td><td>No live session exists</td><td>Create one from <code>/admin/games</code>.</td></tr>
+              <tr><td>Trivia TV shows "Reconnecting…"</td><td>The live channel dropped</td><td>Nothing to do. It keeps polling and stays correct, just a beat slower.</td></tr>
+              <tr><td>A striped <strong>Preview build</strong> banner</td><td>You're on a preview deployment</td><td>Switch to the production URL before doing anything real.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>The pre-flight, in order</h3>
+        <ol class="steps">
+          <li><h4>Log in from the admin's phone over the venue wifi</h4><p>Using the laptop's IP. Catches the cookie failure that nothing else catches.</p></li>
+          <li><h4>Turn on TV sound and set the desk level</h4><p>Before the hall fills up.</p></li>
+          <li><h4>Roll the Oracle with the internet unplugged</h4><p>Proves the draw is genuinely local.</p></li>
+          <li><h4>Create a fresh session</h4><p>Clears rehearsal scores. Then re-sync members and clear the waiting room.</p></li>
+        </ol>
+      </section>
+
+      <footer>
+        <p>Combined Family Meeting · Redeemed Christian Fellowship, FUTA Chapter<br>
+        Powered by the RCF FUTA ICT Team.</p>
+      </footer>
+
+    </main>
+  </div>
+</div>

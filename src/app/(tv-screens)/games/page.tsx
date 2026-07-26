@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Timer, Lock, CheckCircle2, Megaphone, Zap } from "lucide-react";
+import { Trophy, Timer, Lock, CheckCircle2, Megaphone, Zap, Volume2, VolumeX } from "lucide-react";
 import { formatReaction } from "@/src/lib/games/buzzer";
 import { createBrowserClient } from "@/src/lib/supabase/client";
 import { GAME_CHANNEL, GAME_EVENTS } from "@/src/lib/games/channel";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
+import { useSound, useGameSounds } from "@/src/hooks/useSound";
 import type { LeaderboardEntry } from "@/src/lib/games/types";
 import { CfmLogo } from "@/src/components/common/Brand";
 import { Chip } from "@/src/components/ui/chip";
@@ -18,6 +19,11 @@ const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
 export default function GamesScreen() {
     const { state, clockOffset, offline, refetch } = useGameState();
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+
+    // The TV runs through the church PA, so it's the loud one. `ready` is the
+    // browser's autoplay gate, which nothing can bypass without a real click —
+    // hence the prompt below.
+    const sound = useSound(true, 1);
 
     const round = state?.round ?? null;
     const question = state?.question ?? null;
@@ -51,6 +57,8 @@ export default function GamesScreen() {
             .catch(() => {});
     }, [round?.status, round?.id]);
 
+    useGameSounds(state, sound.play, { tv: true, remaining });
+
     const totalMs =
         round?.startsAt && round?.endsAt ? round.endsAt - round.startsAt : null;
     const progress =
@@ -79,8 +87,42 @@ export default function GamesScreen() {
                     {round && round.type === "buzzer" && (
                         <Chip variant="secondary" size="tv">Buzzer</Chip>
                     )}
+                    <button
+                        type="button"
+                        onClick={sound.ready ? sound.toggle : sound.enable}
+                        aria-label={sound.enabled && sound.ready ? "Mute" : "Enable sound"}
+                        className="state-layer grid size-12 place-items-center rounded-full text-on-surface-variant"
+                    >
+                        {sound.enabled && sound.ready ? (
+                            <Volume2 className="size-6" />
+                        ) : (
+                            <VolumeX className="size-6" />
+                        )}
+                    </button>
                 </div>
             </header>
+
+            {/* ── Autoplay gate ────────────────────────────────────────
+                Browsers refuse to start audio until someone has clicked the
+                page, and nobody touches a TV once it's set up. Without this
+                prompt the sound would simply never play and there'd be no clue
+                why — so it takes over the screen until it's dealt with. */}
+            {!sound.ready && (
+                <button
+                    type="button"
+                    onClick={sound.enable}
+                    className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/88 p-8 text-center backdrop-blur-sm"
+                >
+                    <Volume2 className="size-[clamp(3rem,8vw,6rem)] text-tertiary" />
+                    <span className="font-display text-[clamp(1.8rem,5vw,3.5rem)] font-extrabold leading-tight tracking-tight text-on-surface">
+                        Tap anywhere to turn on sound
+                    </span>
+                    <span className="max-w-2xl text-[clamp(0.95rem,2vw,1.5rem)] text-on-surface-variant">
+                        Do this once before the programme starts. Check the
+                        volume on the sound desk at the same time.
+                    </span>
+                </button>
+            )}
 
             {/* ── Idle ─────────────────────────────────────────────────
                 Deliberately not the session title: that's an admin's label

@@ -9,6 +9,7 @@ import { Button } from "@/src/components/ui/button";
 import { Progress } from "@/src/components/ui/progress";
 import { cn } from "@/src/lib/utils";
 import type { PublicBingo, PublicRound } from "@/src/lib/games/types";
+import type { UseSound } from "@/src/hooks/useSound";
 
 type Layout = (number | null)[];
 
@@ -29,6 +30,7 @@ export default function BingoPanel({
     round,
     bingo,
     helpers,
+    sound,
 }: {
     round: PublicRound;
     bingo: PublicBingo;
@@ -38,6 +40,7 @@ export default function BingoPanel({
      * and the big screen, which is where the room should be looking.
      */
     helpers: boolean;
+    sound: UseSound;
 }) {
     const [layout, setLayout] = useState<Layout | null>(null);
     const [marks, setMarks] = useState<Set<number>>(new Set());
@@ -97,12 +100,16 @@ export default function BingoPanel({
             return next;
         });
 
+        // Request first, sound second — see BuzzerPanel for why.
+        const pending = fetch("/api/games/bingo/mark", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cellIndex: cell, marked: !wasMarked }),
+        });
+        sound.play("tap");
+
         try {
-            const res = await fetch("/api/games/bingo/mark", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cellIndex: cell, marked: !wasMarked }),
-            });
+            const res = await pending;
             const json = await res.json();
             if (!res.ok || !json.success) {
                 // Roll back to what the server believes.
@@ -142,6 +149,7 @@ export default function BingoPanel({
                 return;
             }
             setWin({ pattern: json.pattern, position: json.position });
+            sound.play("bingoWin");
             toast.success(
                 json.already
                     ? "Already counted — you're in!"

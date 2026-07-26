@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { useSound } from "@/src/hooks/useSound";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { HelpCircle, LogIn } from "lucide-react";
@@ -15,6 +16,8 @@ import { Progress } from "@/src/components/ui/progress";
 import { LoginGuideModal } from "./LoginGuideModal";
 
 export default function LoginPage() {
+    // Phones only, and quiet — this is a confirmation, not a fanfare.
+    const sound = useSound(true, 0.5);
     const router = useRouter();
     const { setSession, session } = useProfileStore();
     const [isPending, startTransition] = useTransition();
@@ -36,11 +39,13 @@ export default function LoginPage() {
                 const result = await loginAction(formData);
 
                 if (!result.success || !result.data) {
+                    sound.play("loginError");
                     toast.error(result.error ?? "Login failed", { id: toastId });
                     setError(result.error ?? "Login failed");
                     return;
                 }
 
+                sound.play("loginSuccess");
                 toast.success("You're in", { id: toastId });
                 setSession({
                     profile: result.data.profile,
@@ -49,7 +54,23 @@ export default function LoginPage() {
                     eventDate: result.data.eventDate,
                     isAdmin: result.data.isAdmin,
                 });
-                router.push("/");
+
+                /**
+                 * A hard navigation, not `router.push`.
+                 *
+                 * The middleware bounces `/` to `/login` whenever the session
+                 * cookie is absent, and Next caches that redirect in the client
+                 * router. Signing in sets the cookie on the server, but a soft
+                 * navigation can still replay the cached "go to /login" result —
+                 * which looked exactly like nothing happening, until you pressed
+                 * Sign in a second time and a fresh request finally carried the
+                 * cookie.
+                 *
+                 * A full page load always sends the new cookie, so the redirect
+                 * can't be served from cache. It costs one page load at the one
+                 * moment where being certain beats being smooth.
+                 */
+                window.location.assign("/");
             })();
         });
     }

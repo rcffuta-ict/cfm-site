@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Zap } from "lucide-react";
+import { Zap, Volume2, VolumeX } from "lucide-react";
 import OracleSlotMachine from "@/src/components/OracleSlotMachine";
 import { displayLevelBetter } from "@/src/lib/utils";
 import { Chip } from "@/src/components/ui/chip";
 import { Avatar } from "@/src/components/ui/avatar";
 import { ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 import type { OraclePerson } from "@/src/lib/oracle/channel";
+import { useSound } from "@/src/hooks/useSound";
 
 export default function OraclePage() {
     const [raffleId, setRaffleId] = useState<number | null>(null);
@@ -16,6 +17,15 @@ export default function OraclePage() {
     const [spinDuration, setSpinDuration] = useState<number>(3000);
     const [person, setPerson] = useState<OraclePerson | null>(null);
     const [connected, setConnected] = useState(false);
+
+    // This screen runs through the church PA too — the reels turning is half
+    // the theatre of the draw.
+    const sound = useSound(true, 1);
+    // Held in a ref because the SSE handlers are registered once and must not
+    // close over a stale copy of the stop function.
+    const stopSpinRef = useRef<(() => void) | null>(null);
+    const soundRef = useRef(sound);
+    soundRef.current = sound;
 
     /**
      * The Oracle feed is a plain SSE connection to the local server on the venue
@@ -26,10 +36,21 @@ export default function OraclePage() {
     useEffect(() => {
         const source = new EventSource("/api/oracle/stream");
 
+        const startSpin = () => {
+            stopSpinRef.current?.();
+            stopSpinRef.current = soundRef.current.loop("spin");
+        };
+
+        const stopSpin = () => {
+            stopSpinRef.current?.();
+            stopSpinRef.current = null;
+        };
+
         const onPreparing = () => {
             setRaffleId(null);
             setPerson(null);
             setSpinning(true);
+            startSpin();
             toast.loading("Oracle is choosing…", { id: "oracle" });
         };
 
@@ -41,19 +62,26 @@ export default function OraclePage() {
             setSpinDuration(duration);
             setRaffleId(id);
             setSpinning(false);
+            // The reels are already turning from PREPARING; keep the loop going
+            // for the full spin, then land it in time with the animation.
+            startSpin();
             setTimeout(() => {
+                stopSpin();
+                soundRef.current.play("spinLand");
                 toast.success("Oracle has decided", { id: "oracle" });
             }, duration);
         };
 
         const onReveal = (raw: MessageEvent) => {
             setPerson(JSON.parse(raw.data) as OraclePerson);
+            soundRef.current.play("oracleReveal");
         };
 
         const onReset = () => {
             setRaffleId(null);
             setPerson(null);
             setSpinning(false);
+            stopSpin();
             toast.dismiss("oracle");
         };
 
@@ -85,7 +113,10 @@ export default function OraclePage() {
         };
         source.onerror = () => setConnected(false);
 
-        return () => source.close();
+        return () => {
+            stopSpin();
+            source.close();
+        };
     }, []);
 
     return (
@@ -109,6 +140,19 @@ export default function OraclePage() {
                     Never forget · Never bias
                 </p>
 
+                <button
+                    type="button"
+                    onClick={sound.ready ? sound.toggle : sound.enable}
+                    aria-label={sound.enabled && sound.ready ? "Mute" : "Enable sound"}
+                    className="state-layer absolute right-6 top-6 grid size-12 place-items-center rounded-full text-on-surface-variant"
+                >
+                    {sound.enabled && sound.ready ? (
+                        <Volume2 className="size-6" />
+                    ) : (
+                        <VolumeX className="size-6" />
+                    )}
+                </button>
+
                 <Chip
                     variant={connected ? "success" : "neutral"}
                     size="tv"
@@ -124,6 +168,24 @@ export default function OraclePage() {
                     {connected ? "Live" : "Connecting…"}
                 </Chip>
             </header>
+
+            {/* Browsers block audio until someone clicks, and nobody touches a
+                TV once it's set up — so this takes over until it's dealt with. */}
+            {!sound.ready && (
+                <button
+                    type="button"
+                    onClick={sound.enable}
+                    className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/88 p-8 text-center backdrop-blur-sm"
+                >
+                    <Volume2 className="size-[clamp(3rem,8vw,6rem)] text-tertiary" />
+                    <span className="font-display text-[clamp(1.8rem,5vw,3.5rem)] font-extrabold leading-tight tracking-tight text-on-surface">
+                        Tap anywhere to turn on sound
+                    </span>
+                    <span className="max-w-2xl text-[clamp(0.95rem,2vw,1.5rem)] text-on-surface-variant">
+                        Do this once before the programme starts.
+                    </span>
+                </button>
+            )}
 
             <OracleSlotMachine
                 value={raffleId}

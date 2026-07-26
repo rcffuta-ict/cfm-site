@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { ArrowLeft, Sparkles, Hourglass } from "lucide-react";
+import { ArrowLeft, Sparkles, Hourglass, Volume2, VolumeX } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
 import { CfmIcon } from "@/src/components/common/Brand";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
 import GamePanel from "@/src/components/GamePanel";
+import { useSound } from "@/src/hooks/useSound";
 
 /**
  * Two states: the Oracle-ID gate, then the game itself.
@@ -25,6 +26,13 @@ export default function PlayScreen() {
     const [code, setCode] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    /**
+     * Phones are kept quiet and tactile — short ticks, half volume, no round
+     * transitions. The PA carries the drama; 500 phones trying to would just be
+     * noise. Muting is one tap away and remembered.
+     */
+    const sound = useSound(true, 0.5);
 
     async function refreshJoinState() {
         try {
@@ -62,9 +70,11 @@ export default function PlayScreen() {
             const json = await res.json();
             if (!res.ok || !json.success) {
                 setError(json.error || "Couldn't join");
+                sound.play("loginError");
                 return;
             }
             setJoined(true);
+            sound.play("join");
             toast.success("You're in!");
         } catch {
             setError("No connection — try again.");
@@ -89,11 +99,21 @@ export default function PlayScreen() {
                         </p>
                     </div>
                 </div>
-                <Button asChild variant="text" size="sm">
-                    <a href="/">
-                        <ArrowLeft /> Dashboard
-                    </a>
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                        variant="text"
+                        size="icon"
+                        onClick={sound.toggle}
+                        aria-label={sound.enabled ? "Mute sounds" : "Turn on sounds"}
+                    >
+                        {sound.enabled ? <Volume2 /> : <VolumeX />}
+                    </Button>
+                    <Button asChild variant="text" size="sm">
+                        <a href="/">
+                            <ArrowLeft /> Dashboard
+                        </a>
+                    </Button>
+                </div>
             </header>
 
             {checking && (
@@ -166,7 +186,7 @@ export default function PlayScreen() {
             )}
 
             {/* ── In the game ──────────────────────────────────────────── */}
-            {!checking && joined && <GamePanel />}
+            {!checking && joined && <GamePanel sound={sound} />}
         </div>
     );
 }

@@ -7,6 +7,7 @@ import { Chip } from "@/src/components/ui/chip";
 import { cn } from "@/src/lib/utils";
 import { ordinal, formatReaction } from "@/src/lib/games/buzzer";
 import type { PublicBuzzer, PublicRound } from "@/src/lib/games/types";
+import type { UseSound } from "@/src/hooks/useSound";
 
 type Press =
     | { state: "idle" }
@@ -25,9 +26,11 @@ type Press =
 export default function BuzzerPanel({
     round,
     buzzer,
+    sound,
 }: {
     round: PublicRound;
     buzzer: PublicBuzzer;
+    sound: UseSound;
 }) {
     const [press, setPress] = useState<Press>({ state: "idle" });
     const lastPromptRef = useRef<string | null>(null);
@@ -45,9 +48,16 @@ export default function BuzzerPanel({
     async function buzz() {
         if (!open || press.state !== "idle") return;
 
-        // Confirm the tap before the request resolves; the room is loud and
-        // people need to know their press registered.
+        // ── Order matters here ──────────────────────────────────────────
+        // The request goes out FIRST, before any feedback. Position is decided
+        // by arrival order at the server, so anything done ahead of the fetch —
+        // starting a sound, buzzing the motor — is time taken off this person's
+        // place. Feedback follows on the next line and still lands instantly to
+        // a human.
+        const pending = fetch("/api/games/buzzer/press", { method: "POST" });
+
         setPress({ state: "sending" });
+        sound.play("buzzed");
 
         if (typeof navigator !== "undefined" && "vibrate" in navigator) {
             try {
@@ -58,7 +68,7 @@ export default function BuzzerPanel({
         }
 
         try {
-            const res = await fetch("/api/games/buzzer/press", { method: "POST" });
+            const res = await pending;
             const json = await res.json();
             if (!res.ok || !json.success) {
                 setPress({ state: "failed", message: json.error || "Missed it" });

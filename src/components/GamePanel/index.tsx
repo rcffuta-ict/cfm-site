@@ -9,6 +9,7 @@ import { useGameState, useCountdown } from "@/src/hooks/useGameState";
 import BingoPanel from "@/src/components/BingoPanel";
 import BuzzerPanel from "@/src/components/BuzzerPanel";
 import ConnectionWatch from "@/src/components/ConnectionWatch";
+import { useGameSounds, type UseSound } from "@/src/hooks/useSound";
 import { cn } from "@/src/lib/utils";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
@@ -27,7 +28,7 @@ type Submission =
  * network answers, and offers an explicit retry when a submission fails —
  * which on patchy mobile data matters more than almost anything else.
  */
-export default function GamePanel() {
+export default function GamePanel({ sound }: { sound: UseSound }) {
     const { state, clockOffset, loading, offline, connection } = useGameState();
     const [submission, setSubmission] = useState<Submission>({ status: "idle" });
     const lastQuestionRef = useRef<string | null>(null);
@@ -50,14 +51,20 @@ export default function GamePanel() {
 
     async function submit(choice: number) {
         if (!question) return;
-        // Optimistic: the tap is acknowledged before the request resolves.
+        // Request first, feedback second — the speed bonus is measured from
+        // when the answer reaches the server, so nothing decorative should sit
+        // in front of it. The optimistic UI still updates on the same tick.
+        const pending = fetch("/api/games/answer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ questionId: question.id, choiceIndex: choice }),
+        });
+
         setSubmission({ status: "sending", choice });
+        sound.play("tap");
+
         try {
-            const res = await fetch("/api/games/answer", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ questionId: question.id, choiceIndex: choice }),
-            });
+            const res = await pending;
             const json = await res.json();
             if (!res.ok || !json.success) {
                 // An already-recorded answer is a success from the member's
@@ -74,6 +81,7 @@ export default function GamePanel() {
                 return;
             }
             setSubmission({ status: "sent", choice });
+            sound.play("lockedIn");
         } catch {
             setSubmission({
                 status: "failed",
@@ -82,6 +90,10 @@ export default function GamePanel() {
             });
         }
     }
+
+    // Phones get the buzzer-open cue and their own confirmations, but not the
+    // round-transition fanfare — that belongs to the PA.
+    useGameSounds(state, sound.play, { tv: false });
 
     // Mounted for the whole life of the panel so the warning can fire whatever
     // game is on screen.
@@ -121,6 +133,7 @@ export default function GamePanel() {
                     round={round}
                     bingo={state.bingo}
                     helpers={state.helpers}
+                    sound={sound}
                 />
             </>
         );
@@ -130,7 +143,7 @@ export default function GamePanel() {
             <>
                 {watch}
                 {poorBanner}
-                <BuzzerPanel round={round} buzzer={state.buzzer} />
+                <BuzzerPanel round={round} buzzer={state.buzzer} sound={sound} />
             </>
         );
 
