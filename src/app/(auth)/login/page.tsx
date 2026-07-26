@@ -17,7 +17,7 @@ import { LoginGuideModal } from "./LoginGuideModal";
 
 export default function LoginPage() {
     // Phones only, and quiet — this is a confirmation, not a fanfare.
-    const sound = useSound(true, 0.5);
+    const sound = useSound(0.5);
     const router = useRouter();
     const { setSession, session } = useProfileStore();
     const [isPending, startTransition] = useTransition();

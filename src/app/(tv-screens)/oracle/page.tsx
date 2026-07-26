@@ -10,6 +10,8 @@ import { Avatar } from "@/src/components/ui/avatar";
 import { ORACLE_EVENTS } from "@/src/lib/oracle/channel";
 import type { OraclePerson } from "@/src/lib/oracle/channel";
 import { useSound } from "@/src/hooks/useSound";
+import SoundPrompt from "@/src/components/SoundPrompt";
+import { CfmIcon } from "@/src/components/common/Brand";
 
 export default function OraclePage() {
     const [raffleId, setRaffleId] = useState<number | null>(null);
@@ -20,7 +22,7 @@ export default function OraclePage() {
 
     // This screen runs through the church PA too — the reels turning is half
     // the theatre of the draw.
-    const sound = useSound(true, 1);
+    const sound = useSound(1);
     // Held in a ref because the SSE handlers are registered once and must not
     // close over a stale copy of the stop function.
     const stopSpinRef = useRef<(() => void) | null>(null);
@@ -129,10 +131,11 @@ export default function OraclePage() {
                 watching. */}
             <header className="flex flex-col items-center gap-3 text-center">
                 <h1 className="flex items-center gap-[0.25em] font-display text-[clamp(2.4rem,6.5vw,5.5rem)] font-extrabold uppercase leading-none tracking-[-0.02em] text-on-surface">
-                    <Zap
+                    {/* <Zap
                         className="size-[0.72em] shrink-0 text-tertiary"
                         strokeWidth={2.5}
-                    />
+                    /> */}
+                    <CfmIcon width={50} height={50} priority />
                     Oracle
                 </h1>
 
@@ -142,11 +145,11 @@ export default function OraclePage() {
 
                 {/* <button
                     type="button"
-                    onClick={sound.ready ? sound.toggle : sound.enable}
-                    aria-label={sound.enabled && sound.ready ? "Mute" : "Enable sound"}
+                    onClick={sound.toggle}
+                    aria-label={sound.enabled ? "Mute" : "Turn on sound"}
                     className="state-layer absolute right-6 top-6 grid size-12 place-items-center rounded-full text-on-surface-variant"
                 >
-                    {sound.enabled && sound.ready ? (
+                    {sound.enabled ? (
                         <Volume2 className="size-6" />
                     ) : (
                         <VolumeX className="size-6" />
@@ -169,23 +172,7 @@ export default function OraclePage() {
                 </Chip>
             </header>
 
-            {/* Browsers block audio until someone clicks, and nobody touches a
-                TV once it's set up — so this takes over until it's dealt with. */}
-            {!sound.ready && (
-                <button
-                    type="button"
-                    onClick={sound.enable}
-                    className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/88 p-8 text-center backdrop-blur-sm"
-                >
-                    <Volume2 className="size-[clamp(3rem,8vw,6rem)] text-tertiary" />
-                    <span className="font-display text-[clamp(1.8rem,5vw,3.5rem)] font-extrabold leading-tight tracking-tight text-on-surface">
-                        Tap anywhere to turn on sound
-                    </span>
-                    <span className="max-w-2xl text-[clamp(0.95rem,2vw,1.5rem)] text-on-surface-variant">
-                        Do this once before the programme starts.
-                    </span>
-                </button>
-            )}
+            <SoundPrompt sound={sound} variant="tv" screen="Oracle" />
 
             <OracleSlotMachine
                 value={raffleId}

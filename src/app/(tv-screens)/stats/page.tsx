@@ -85,8 +85,22 @@ export default function StatsPage() {
     const total = stats?.total ?? 0;
     const brothers = stats?.brothers ?? 0;
     const sisters = stats?.sisters ?? 0;
-    const brotherPct = total ? Math.round((brothers / total) * 100) : 50;
-    const sisterPct = total ? Math.round((sisters / total) * 100) : 50;
+    /**
+     * The split is taken over brothers + sisters, not the total, and the second
+     * share is the exact complement of the first.
+     *
+     * Both matter, because the bar is three layers deep — a grey track with two
+     * coloured segments over it — so any shortfall shows the track through as a
+     * phantom third colour. Two independent `Math.round` calls can land on 99,
+     * and dividing by the total leaves a gap for anyone whose gender isn't
+     * recorded as male or female. Neither is a thing the hall should be reading
+     * off a wall.
+     */
+    const counted = brothers + sisters;
+    const brotherPct = counted ? Math.round((brothers / counted) * 100) : 50;
+    const sisterPct = 100 - brotherPct;
+    /** Registered, but not counted in either bar — surfaced rather than hidden. */
+    const unrecorded = Math.max(0, total - counted);
 
     return (
         <div className="relative flex min-h-[100dvh] flex-col px-6 py-8 sm:px-10">
@@ -239,13 +253,15 @@ export default function StatsPage() {
                                 </div>
                             </div>
 
-                            <div className="flex h-4 flex-1 overflow-hidden rounded-full bg-surface-container-highest">
+                            {/* `shrink-0` so flex can never squeeze a segment and
+                                open a gap; the two widths always total 100. */}
+                            <div className="flex h-4 flex-1 overflow-hidden rounded-full">
                                 <div
-                                    className="h-full bg-secondary transition-[width] duration-700 ease-standard"
+                                    className="h-full shrink-0 bg-secondary transition-[width] duration-700 ease-standard"
                                     style={{ width: `${brotherPct}%` }}
                                 />
                                 <div
-                                    className="h-full bg-primary transition-[width] duration-700 ease-standard"
+                                    className="h-full shrink-0 bg-primary transition-[width] duration-700 ease-standard"
                                     style={{ width: `${sisterPct}%` }}
                                 />
                             </div>

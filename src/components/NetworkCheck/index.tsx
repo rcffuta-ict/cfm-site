@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Signal, ArrowLeft, RotateCcw, Gamepad2 } from "lucide-react";
+import { Signal, ArrowLeft, RotateCcw, Gamepad2, Volume2 } from "lucide-react";
 import { Ambient } from "@/src/components/common/Ambient";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
@@ -182,6 +182,21 @@ export default function NetworkCheck() {
                         a slow connection is a real disadvantage there. Trivia and bingo
                         are far more forgiving.
                     </p>
+                </Card>
+
+                {/* Sound has its own page — it needs room for per-cue
+                    playback, and the sound desk shouldn't have to scroll past a
+                    latency report to reach it. */}
+                <Card variant="elevated" className="p-5">
+                    <h2 className="mb-2 text-sm font-bold text-on-surface">Sound</h2>
+                    <p className="mb-4 text-sm leading-6 text-on-surface-variant">
+                        Turn sound on and hear every game cue on demand.
+                    </p>
+                    <Button asChild variant="tonal" className="w-full">
+                        <a href="/sound">
+                            <Volume2 /> Open sound check
+                        </a>
+                    </Button>
                 </Card>
 
                 <div className="grid grid-cols-2 gap-3">

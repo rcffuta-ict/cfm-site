@@ -11,6 +11,7 @@ import {
     Zap,
     Info,
     Signal,
+    Volume2,
 } from "lucide-react";
 import { useProfileStore } from "@/src/lib/stores/profile.store";
 import { Ambient } from "@/src/components/common/Ambient";
@@ -198,6 +199,13 @@ export default function UserDashboard() {
                         icon={<Signal className="size-5" />}
                         title="Check your connection"
                         subtitle="See if your signal is good enough to compete"
+                    />
+                    <div className="mx-5 h-px bg-outline-variant" />
+                    <DashboardLink
+                        href="/sound"
+                        icon={<Volume2 className="size-5" />}
+                        title="Check your sound"
+                        subtitle="Turn it on and hear every game cue"
                     />
                     <div className="mx-5 h-px bg-outline-variant" />
                     <DashboardLink

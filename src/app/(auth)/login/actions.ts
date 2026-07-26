@@ -10,7 +10,29 @@ import { isAdmin } from "@/src/lib/admin";
 import { setSessionCookie } from "@/src/lib/auth/session";
 import { friendlyError, isUniqueViolation, reportError } from "@/src/lib/errors";
 
-const RAFFLE_BASE = parseInt(process.env.RAFFLE_ID_BASE || "42700", 10);
+/**
+ * Oracle IDs are `RAFFLE_ID_BASE + 0..99`, so the base decides how many digits
+ * a member sees. A base below 10000 mints 4-digit IDs, which look wrong next to
+ * everyone else's and don't fill the five digit boxes on the dashboard.
+ *
+ * The floor exists because the value that actually matters lives in the hosting
+ * platform's settings, not in the repo — so a typo there would otherwise reach
+ * the hall before anyone noticed.
+ */
+const RAFFLE_BASE_FLOOR = 10000;
+const RAFFLE_BASE_DEFAULT = 42700;
+
+const RAFFLE_BASE = (() => {
+    const configured = parseInt(process.env.RAFFLE_ID_BASE || "", 10);
+    if (!Number.isFinite(configured)) return RAFFLE_BASE_DEFAULT;
+    if (configured < RAFFLE_BASE_FLOOR) {
+        console.warn(
+            `[raffle] RAFFLE_ID_BASE=${configured} would produce short Oracle IDs; using ${RAFFLE_BASE_DEFAULT}`
+        );
+        return RAFFLE_BASE_DEFAULT;
+    }
+    return configured;
+})();
 
 async function generateRaffleId(eventId: string): Promise<number> {
     const supabase = getAdminClient();

@@ -190,9 +190,16 @@ const FALLBACK: Record<Cue, Note[]> = {
 
 // ── Engine ──────────────────────────────────────────────────────────────────
 
+/** Where each cue's sound actually came from — surfaced on the /sound page. */
+export type CueSource =
+    | { source: "file"; ext: string }
+    | { source: "borrowed"; from: Cue }
+    | { source: "synth" };
+
 const globalForAudio = globalThis as typeof globalThis & {
     __cfmAudioCtx?: AudioContext;
     __cfmBuffers?: Partial<Record<Cue, AudioBuffer>>;
+    __cfmSources?: Partial<Record<Cue, CueSource>>;
     __cfmPreloaded?: boolean;
 };
 
@@ -226,7 +233,9 @@ export async function preloadSounds(): Promise<{ loaded: Cue[]; missing: Cue[] }
     if (!ctx) return { loaded, missing: Object.keys(CUE_FILES) as Cue[] };
 
     globalForAudio.__cfmBuffers ??= {};
+    globalForAudio.__cfmSources ??= {};
     const buffers = globalForAudio.__cfmBuffers;
+    const sources = globalForAudio.__cfmSources;
 
     await Promise.all(
         (Object.keys(CUE_FILES) as Cue[]).map(async (cue) => {
@@ -243,6 +252,7 @@ export async function preloadSounds(): Promise<{ loaded: Cue[]; missing: Cue[] }
                     if (!res.ok) continue;
                     const bytes = await res.arrayBuffer();
                     buffers[cue] = await ctx.decodeAudioData(bytes);
+                    sources[cue] = { source: "file", ext };
                     loaded.push(cue);
                     return;
                 } catch {
@@ -262,6 +272,7 @@ export async function preloadSounds(): Promise<{ loaded: Cue[]; missing: Cue[] }
         const borrowed = buffers[alias];
         if (!borrowed) continue;
         buffers[cue] = borrowed;
+        sources[cue] = { source: "borrowed", from: alias };
         loaded.push(cue);
         missing.splice(missing.indexOf(cue), 1);
     }
@@ -273,6 +284,15 @@ export async function preloadSounds(): Promise<{ loaded: Cue[]; missing: Cue[] }
 /** Which cues are backed by a real file right now. */
 export function loadedCues(): Cue[] {
     return Object.keys(globalForAudio.__cfmBuffers ?? {}) as Cue[];
+}
+
+/** Per-cue provenance for every cue, including the ones still on the synth. */
+export function cueSources(): Record<Cue, CueSource> {
+    const known = globalForAudio.__cfmSources ?? {};
+    const out = {} as Record<Cue, CueSource>;
+    for (const cue of Object.keys(CUE_FILES) as Cue[])
+        out[cue] = known[cue] ?? { source: "synth" };
+    return out;
 }
 
 /**

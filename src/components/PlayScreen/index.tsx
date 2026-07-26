@@ -10,6 +10,7 @@ import { Card } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
 import GamePanel from "@/src/components/GamePanel";
 import { useSound } from "@/src/hooks/useSound";
+import SoundPrompt from "@/src/components/SoundPrompt";
 
 /**
  * Two states: the Oracle-ID gate, then the game itself.
@@ -32,7 +33,7 @@ export default function PlayScreen() {
      * transitions. The PA carries the drama; 500 phones trying to would just be
      * noise. Muting is one tap away and remembered.
      */
-    const sound = useSound(true, 0.5);
+    const sound = useSound(0.5);
 
     async function refreshJoinState() {
         try {
@@ -186,7 +187,14 @@ export default function PlayScreen() {
             )}
 
             {/* ── In the game ──────────────────────────────────────────── */}
-            {!checking && joined && <GamePanel sound={sound} />}
+            {!checking && joined && (
+                <>
+                    {/* Asked after joining, so it never sits in front of the
+                        Oracle-ID entry, and never mid-round. */}
+                    <SoundPrompt sound={sound} />
+                    <GamePanel sound={sound} />
+                </>
+            )}
         </div>
     );
 }

@@ -13,57 +13,103 @@ import type { GameState } from "@/src/lib/games/types";
 
 const STORAGE_KEY = "cfm-sound";
 
+/**
+ * Whether this person has been asked about sound, and what they said.
+ *
+ * `unset` is a real state, not a default. Nothing makes a noise until somebody
+ * has actually agreed to it — which matters in a church hall, where a phone
+ * that starts chirping unannounced is worse than one that stays quiet, and a PA
+ * that does it is worse still.
+ */
+export type SoundPreference = "unset" | "on" | "off";
+
 export interface UseSound {
-    /** Preference: does this person want sound at all. */
+    preference: SoundPreference;
+    /** Permitted *and* the browser has let us start audio. */
     enabled: boolean;
-    /** Whether the browser has actually let us start audio yet. */
+    /** The browser's autoplay gate is open. */
     ready: boolean;
+    /** Nobody has answered yet — show the prompt. */
+    needsPermission: boolean;
+    /** Say yes. Must be called from inside a real click or tap. */
+    grant: () => Promise<void>;
+    /** Say no. Remembered; never asked again on this device. */
+    decline: () => void;
+    /** Change your mind later, via the speaker button. */
     toggle: () => void;
-    enable: () => Promise<void>;
     play: (cue: Cue) => void;
     /** Start a looping cue; call the result to stop it. */
     loop: (cue: Cue) => () => void;
 }
 
-/**
- * Sound preference plus the browser's autoplay gate, which are different things
- * and both have to be true before anything is audible.
- */
-export function useSound(defaultOn: boolean, volume = 1): UseSound {
-    const [enabled, setEnabled] = useState(defaultOn);
+function readPreference(): SoundPreference {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === "on" || saved === "off") return saved;
+    } catch {
+        // Blocked storage — treat as unasked. The prompt is cheap.
+    }
+    return "unset";
+}
+
+function writePreference(value: SoundPreference) {
+    try {
+        localStorage.setItem(STORAGE_KEY, value);
+    } catch {
+        /* ignore */
+    }
+}
+
+export function useSound(volume = 1): UseSound {
+    // Always starts `unset` so the server render and the first client render
+    // agree; the stored answer is read in an effect.
+    const [preference, setPreference] = useState<SoundPreference>("unset");
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved !== null) setEnabled(saved === "1");
-        } catch {
-            // Private mode or blocked storage — the default stands.
+        const saved = readPreference();
+        setPreference(saved);
+
+        // A browser launched with the autoplay policy relaxed (kiosk TVs) starts
+        // with audio already running. Note it — but still stay silent unless the
+        // answer here was yes.
+        if (audioReady()) {
+            setReady(true);
+            if (saved === "on") void preloadSounds();
         }
-        setReady(audioReady());
     }, []);
 
-    const enable = useCallback(async () => {
+    const grant = useCallback(async () => {
         const ok = await unlockAudio();
         setReady(ok);
-        // Decoding needs a running context, so files load once the gate opens.
+        setPreference("on");
+        writePreference("on");
         if (ok) void preloadSounds();
     }, []);
 
+    const decline = useCallback(() => {
+        setPreference("off");
+        writePreference("off");
+    }, []);
+
     const toggle = useCallback(() => {
-        setEnabled((was) => {
-            const next = !was;
-            try {
-                localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-            } catch {
-                /* ignore */
+        setPreference((was) => {
+            if (was === "on") {
+                writePreference("off");
+                return "off";
             }
-            // Turning it on is itself a user gesture, so it's the right moment
-            // to satisfy the autoplay gate.
-            if (next) unlockAudio().then(setReady);
-            return next;
+            // Turning it on is itself a gesture, so it's the right moment to
+            // satisfy the autoplay gate.
+            unlockAudio().then((ok) => {
+                setReady(ok);
+                if (ok) void preloadSounds();
+            });
+            writePreference("on");
+            return "on";
         });
     }, []);
+
+    const enabled = preference === "on" && ready;
 
     const play = useCallback(
         (cue: Cue) => {
@@ -81,7 +127,17 @@ export function useSound(defaultOn: boolean, volume = 1): UseSound {
         [enabled, volume]
     );
 
-    return { enabled, ready, toggle, enable, play, loop };
+    return {
+        preference,
+        enabled,
+        ready,
+        needsPermission: preference === "unset",
+        grant,
+        decline,
+        toggle,
+        play,
+        loop,
+    };
 }
 
 /**
