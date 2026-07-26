@@ -32,7 +32,15 @@ export async function GET() {
     if (roundIds.length === 0)
         return NextResponse.json({ entries: [], totalPlayers: 0 });
 
-    const [{ data: answers }, { data: wins }] = await Promise.all([
+    // Buzzer points hang off prompts rather than rounds, so the prompt ids for
+    // this session have to be resolved before the presses can be totalled.
+    const { data: prompts } = await supabase
+        .from("buzzer_prompts")
+        .select("id")
+        .in("round_id", roundIds);
+    const promptIds = (prompts ?? []).map((p) => p.id);
+
+    const [{ data: answers }, { data: wins }, { data: presses }] = await Promise.all([
         supabase
             .from("trivia_answers")
             .select("profile_id, points_awarded, is_correct")
@@ -41,6 +49,12 @@ export async function GET() {
             .from("bingo_wins")
             .select("profile_id, points_awarded")
             .in("round_id", roundIds),
+        promptIds.length > 0
+            ? supabase
+                  .from("buzzer_presses")
+                  .select("profile_id, points_awarded")
+                  .in("prompt_id", promptIds)
+            : Promise.resolve({ data: [] as { profile_id: string; points_awarded: number }[] }),
     ]);
 
     // One combined board across every game in the session, per game-plan §8.
@@ -55,6 +69,7 @@ export async function GET() {
     for (const a of answers ?? [])
         bump(a.profile_id, a.points_awarded ?? 0, a.is_correct ? 1 : 0);
     for (const w of wins ?? []) bump(w.profile_id, w.points_awarded ?? 0);
+    for (const p of presses ?? []) bump(p.profile_id, p.points_awarded ?? 0);
 
     // Only people who actually scored. Everyone who answered is in `totals`,
     // but a board padded with zeros reads as broken on the big screen — and
