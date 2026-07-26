@@ -5,6 +5,7 @@ import { getFullProfile } from "@/src/lib/profile";
 import { isAdmin } from "@/src/lib/admin";
 import { getSessionCookie } from "@/src/lib/auth/session";
 import type { SessionData } from "@/src/lib/stores/profile.store";
+import { reportError } from "@/src/lib/errors";
 
 export async function getSessionAction(): Promise<{
     success: boolean;
@@ -54,8 +55,11 @@ export async function getSessionAction(): Promise<{
                 isAdmin: admin,
             },
         };
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[getSessionAction]", err);
-        return { success: false, error: err?.message || "Failed to restore session." };
+        return {
+            success: false,
+            error: reportError("getSessionAction", err, "Couldn't restore your session."),
+        };
     }
 }

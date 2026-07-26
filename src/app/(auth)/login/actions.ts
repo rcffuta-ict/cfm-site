@@ -8,6 +8,7 @@ import { getCfmEvent, isLevelDisabled } from "@/src/lib/event";
 import { resolveLevelFromClassSet } from "@/src/lib/level";
 import { isAdmin } from "@/src/lib/admin";
 import { setSessionCookie } from "@/src/lib/auth/session";
+import { friendlyError, isUniqueViolation, reportError } from "@/src/lib/errors";
 
 const RAFFLE_BASE = parseInt(process.env.RAFFLE_ID_BASE || "42700", 10);
 
@@ -162,39 +163,126 @@ export async function loginAction(formData: FormData) {
             };
         }
 
-        const { data: existing } = await supabase
-            .from("event_registrations")
-            .select("id, raffle_id")
-            .eq("event_id", event.id)
-            .eq("email", email)
-            .maybeSingle();
+        /**
+         * A phone number the database will accept.
+         *
+         * `event_registrations.phone_number` is NOT NULL *and* carries a
+         * UNIQUE (event_id, phone_number) constraint — `unique_event_phone`.
+         * That combination is hostile to members with no phone on file: `""`
+         * works exactly once, and the second such member collides with the
+         * first. NULL isn't an option either, because the column forbids it.
+         *
+         * So an absent phone gets a placeholder that is unique by construction
+         * and unmistakably not a phone number, rather than blocking the sign-in
+         * of someone whose only mistake is having no number on their profile.
+         * `docs/fix-phone-nullable.sql` makes the column nullable, which is the
+         * proper fix once the event is over.
+         */
+        const realPhone = fullProfile.profile.phoneNumber?.trim();
+        const phone = realPhone || `no-phone:${match.id}`;
+
+        /**
+         * Find an existing registration by email *or* phone.
+         *
+         * Checking email alone was the live bug: someone registered at the desk
+         * under one email, then signed in with another, so this lookup missed
+         * and we tried to insert a second row with the same phone — which the
+         * constraint refused, and the raw Postgres text went to their screen.
+         */
+        const findExisting = async () => {
+            const { data: byEmail } = await supabase
+                .from("event_registrations")
+                .select("id, raffle_id")
+                .eq("event_id", event.id)
+                .eq("email", email)
+                .maybeSingle();
+            if (byEmail) return byEmail;
+
+            if (!phone) return null;
+            const { data: byPhone } = await supabase
+                .from("event_registrations")
+                .select("id, raffle_id")
+                .eq("event_id", event.id)
+                .eq("phone_number", phone)
+                .maybeSingle();
+            return byPhone ?? null;
+        };
+
+        const existing = await findExisting();
 
         let raffleId: number | null = existing?.raffle_id ?? null;
 
         if (!existing) {
-            raffleId = await generateRaffleId(event.id);
-            const { error: insertError } = await supabase
-                .from("event_registrations")
-                .insert({
-                    event_id: event.id,
-                    first_name: fullProfile.profile.firstName,
-                    last_name: fullProfile.profile.lastName,
-                    email,
-                    phone_number: fullProfile.profile.phoneNumber ?? "",
-                    level,
-                    gender: fullProfile.profile.gender ?? "",
-                    raffle_id: raffleId,
-                    is_rcf_member: true,
-                });
-            if (insertError) {
-                console.error("[loginAction] Event Registration Insert Error:", insertError);
+            /**
+             * Registration, retried.
+             *
+             * Two unique constraints can fail here and they mean opposite
+             * things. A clash on the phone number means this person is already
+             * registered — let them in on the row that exists. A clash on
+             * `raffle_id` means two people signing in at the same instant drew
+             * the same Oracle ID, because generating one is a read-then-write:
+             * that's ours to fix, so we pick another and try again rather than
+             * making them tap Sign in a second time during the rush.
+             */
+            let registered = false;
+
+            for (let attempt = 0; attempt < 5 && !registered; attempt++) {
+                raffleId = await generateRaffleId(event.id);
+
+                const { error: insertError } = await supabase
+                    .from("event_registrations")
+                    .insert({
+                        event_id: event.id,
+                        first_name: fullProfile.profile.firstName,
+                        last_name: fullProfile.profile.lastName,
+                        email,
+                        phone_number: phone,
+                        level,
+                        gender: fullProfile.profile.gender ?? "",
+                        raffle_id: raffleId,
+                        is_rcf_member: true,
+                    });
+
+                if (!insertError) {
+                    registered = true;
+                    break;
+                }
+
+                console.error(
+                    `[loginAction] registration insert failed (attempt ${attempt + 1})`,
+                    insertError
+                );
+
+                if (!isUniqueViolation(insertError)) {
+                    return {
+                        success: false,
+                        error: friendlyError(
+                            insertError,
+                            "We couldn't save your registration. Please try again."
+                        ),
+                    };
+                }
+
+                // Already registered under another email, or added at the desk
+                // mid-request — use the row that exists.
+                const raced = await findExisting();
+                if (raced) {
+                    raffleId = raced.raffle_id;
+                    registered = true;
+                    break;
+                }
+
+                // Otherwise it was an Oracle ID clash: loop and draw another.
+            }
+
+            if (!registered) {
                 return {
                     success: false,
-                    error: insertError.message || "Failed to save registration.",
+                    error: "We're signing a lot of people in at once. Please tap Sign in again.",
                 };
             }
 
-            // Record the token use (best-effort — don't block login on this).
+            // Record the token use (best-effort — never block login on this).
             await supabase
                 .from("registration_invites")
                 .update({ use_count: invite.use_count + 1 })
@@ -225,11 +313,14 @@ export async function loginAction(formData: FormData) {
                 isAdmin: admin,
             },
         };
-    } catch (error: any) {
-        console.error("[loginAction]", error);
+    } catch (error: unknown) {
         return {
             success: false,
-            error: error?.message || "Login failed. Please try again.",
+            error: reportError(
+                "loginAction",
+                error,
+                "Sign-in failed. Please try again, or see the ICT desk."
+            ),
         };
     }
 }

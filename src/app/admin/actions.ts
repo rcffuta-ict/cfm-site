@@ -8,6 +8,7 @@ import {
     setDisabledLevels,
 } from "@/src/lib/event";
 import { MANAGEABLE_LEVELS } from "@/src/lib/utils";
+import { reportError } from "@/src/lib/errors";
 
 /** All levels the console can toggle participation for. */
 
@@ -62,7 +63,9 @@ export async function setLevelDisabledAction(
         await setDisabledLevels(supabase, next);
         return { success: true, disabledLevels: next };
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to update.";
-        return { success: false, error: message };
+        return {
+            success: false,
+            error: reportError("setLevelDisabledAction", err, "Couldn't update that level."),
+        };
     }
 }

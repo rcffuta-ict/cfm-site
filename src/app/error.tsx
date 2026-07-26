@@ -37,9 +37,12 @@ export default function ErrorPage({
                 An unexpected error occurred on our end. Try again in a moment.
             </p>
 
-            {error?.message && (
-                <p className="mt-5 max-w-md break-words rounded-md bg-error-container/50 px-4 py-3 text-left text-xs leading-5 text-on-error-container">
-                    {error.message}
+            {/* A reference to quote at the ICT desk — never the raw error.
+                Members were being shown database internals, which tells them
+                nothing and looks broken. The real error is in the server logs. */}
+            {error?.digest && (
+                <p className="mt-5 rounded-md bg-error-container/50 px-4 py-3 font-mono text-xs leading-5 text-on-error-container">
+                    Reference: {error.digest}
                 </p>
             )}
 
