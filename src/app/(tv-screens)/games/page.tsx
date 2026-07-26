@@ -87,7 +87,7 @@ export default function GamesScreen() {
                     {round && round.type === "buzzer" && (
                         <Chip variant="secondary" size="tv">Buzzer</Chip>
                     )}
-                    <button
+                    {/* <button
                         type="button"
                         onClick={sound.ready ? sound.toggle : sound.enable}
                         aria-label={sound.enabled && sound.ready ? "Mute" : "Enable sound"}
@@ -98,7 +98,7 @@ export default function GamesScreen() {
                         ) : (
                             <VolumeX className="size-6" />
                         )}
-                    </button>
+                    </button> */}
                 </div>
             </header>
 

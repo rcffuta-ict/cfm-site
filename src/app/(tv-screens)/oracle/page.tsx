@@ -140,7 +140,7 @@ export default function OraclePage() {
                     Never forget · Never bias
                 </p>
 
-                <button
+                {/* <button
                     type="button"
                     onClick={sound.ready ? sound.toggle : sound.enable}
                     aria-label={sound.enabled && sound.ready ? "Mute" : "Enable sound"}
@@ -151,7 +151,7 @@ export default function OraclePage() {
                     ) : (
                         <VolumeX className="size-6" />
                     )}
-                </button>
+                </button> */}
 
                 <Chip
                     variant={connected ? "success" : "neutral"}
