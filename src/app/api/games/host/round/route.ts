@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
             const { data: round } = await supabase
                 .from("game_rounds")
-                .select("id, config")
+                .select("id, type, config")
                 .eq("id", target)
                 .maybeSingle();
             if (!round)
@@ -70,17 +70,21 @@ export async function POST(request: NextRequest) {
             // Absolute timestamps, set once here. Every screen derives its own
             // countdown from ends_at, so nothing drifts if a device gets the
             // message late.
+            //
+            // Bingo is open-ended — it runs until someone completes a line, so
+            // it gets a start but deliberately no deadline.
             const startsAt = new Date();
-            const endsAt = new Date(
-                startsAt.getTime() + config.durationSeconds * 1000
-            );
+            const endsAt =
+                round.type === "bingo"
+                    ? null
+                    : new Date(startsAt.getTime() + config.durationSeconds * 1000);
 
             await supabase
                 .from("game_rounds")
                 .update({
                     status: "active",
                     starts_at: startsAt.toISOString(),
-                    ends_at: endsAt.toISOString(),
+                    ends_at: endsAt ? endsAt.toISOString() : null,
                 })
                 .eq("id", target);
 

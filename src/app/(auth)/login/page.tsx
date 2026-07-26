@@ -61,7 +61,7 @@ export default function LoginPage() {
             {/* The event wordmark is the hero — it identifies the app better
                 than any heading we could set in type. */}
             <div className="mb-7 flex justify-center">
-                <CfmLogo width={280} height={140} priority />
+                <CfmLogo width={180} height={80} priority />
             </div>
 
             <div className="w-full max-w-md overflow-hidden rounded-xl bg-surface-container-low shadow-e-2">

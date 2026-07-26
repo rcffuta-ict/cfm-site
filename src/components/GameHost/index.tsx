@@ -22,6 +22,7 @@ import { Chip } from "@/src/components/ui/chip";
 import { Progress } from "@/src/components/ui/progress";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
 import QuestionEditor from "@/src/components/GameHost/QuestionEditor";
+import BingoEditor from "@/src/components/GameHost/BingoEditor";
 import { cn } from "@/src/lib/utils";
 
 interface HostRound {
@@ -306,6 +307,15 @@ export default function GameHost() {
                     loadRounds();
                 }}
             />
+
+            {hasSession && (
+                <BingoEditor
+                    onChanged={() => {
+                        refetch();
+                        loadRounds();
+                    }}
+                />
+            )}
         </div>
     );
 }

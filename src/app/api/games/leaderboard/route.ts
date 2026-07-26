@@ -32,18 +32,29 @@ export async function GET() {
     if (roundIds.length === 0)
         return NextResponse.json({ entries: [], totalPlayers: 0 });
 
-    const { data: answers } = await supabase
-        .from("trivia_answers")
-        .select("profile_id, points_awarded, is_correct")
-        .in("round_id", roundIds);
+    const [{ data: answers }, { data: wins }] = await Promise.all([
+        supabase
+            .from("trivia_answers")
+            .select("profile_id, points_awarded, is_correct")
+            .in("round_id", roundIds),
+        supabase
+            .from("bingo_wins")
+            .select("profile_id, points_awarded")
+            .in("round_id", roundIds),
+    ]);
 
+    // One combined board across every game in the session, per game-plan §8.
     const totals = new Map<string, { points: number; correct: number }>();
-    for (const a of answers ?? []) {
-        const row = totals.get(a.profile_id) ?? { points: 0, correct: 0 };
-        row.points += a.points_awarded ?? 0;
-        if (a.is_correct) row.correct += 1;
-        totals.set(a.profile_id, row);
-    }
+    const bump = (id: string, points: number, correct = 0) => {
+        const row = totals.get(id) ?? { points: 0, correct: 0 };
+        row.points += points;
+        row.correct += correct;
+        totals.set(id, row);
+    };
+
+    for (const a of answers ?? [])
+        bump(a.profile_id, a.points_awarded ?? 0, a.is_correct ? 1 : 0);
+    for (const w of wins ?? []) bump(w.profile_id, w.points_awarded ?? 0);
 
     // Only people who actually scored. Everyone who answered is in `totals`,
     // but a board padded with zeros reads as broken on the big screen — and

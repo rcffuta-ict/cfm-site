@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Timer, Lock, CheckCircle2 } from "lucide-react";
+import { Trophy, Timer, Lock, CheckCircle2, Megaphone } from "lucide-react";
 import { createBrowserClient } from "@/src/lib/supabase/client";
 import { GAME_CHANNEL, GAME_EVENTS } from "@/src/lib/games/channel";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
@@ -87,8 +87,55 @@ export default function GamesScreen() {
                 </div>
             )}
 
+            {/* ── Bingo ───────────────────────────────────────────────── */}
+            {round?.type === "bingo" && round.status !== "pending" && state?.bingo && (
+                <div className="flex flex-1 flex-col justify-center gap-[clamp(1rem,3vh,2.5rem)]">
+                    <div className="text-center">
+                        <p className="flex items-center justify-center gap-3 text-[clamp(0.9rem,2vw,1.6rem)] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
+                            <Megaphone className="size-[1.1em]" /> Called
+                        </p>
+                        <p className="mt-4 font-display text-[clamp(2.6rem,9vw,7rem)] font-extrabold leading-[1.05] tracking-tight text-on-surface">
+                            {state.bingo.called.length === 0
+                                ? "Ready…"
+                                : state.bingo.items[state.bingo.called[0]]}
+                        </p>
+                        <p className="mt-4 text-[clamp(0.9rem,1.8vw,1.4rem)] text-on-surface-variant">
+                            {state.bingo.called.length} of {state.bingo.items.length}{" "}
+                            called
+                        </p>
+                    </div>
+
+                    {state.bingo.called.length > 1 && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {state.bingo.called.slice(1, 12).map((i) => (
+                                <Chip key={i} variant="neutral" size="tv">
+                                    {state.bingo!.items[i]}
+                                </Chip>
+                            ))}
+                        </div>
+                    )}
+
+                    {state.bingo.winners.length > 0 && (
+                        <div className="rounded-xl bg-success-container p-[clamp(1rem,2.5vh,1.8rem)] text-on-success-container">
+                            <p className="flex items-center justify-center gap-3 font-display text-[clamp(1.2rem,3vw,2.2rem)] font-extrabold">
+                                <Trophy className="size-[1.1em]" />
+                                {state.bingo.winners[0].name} got bingo!
+                            </p>
+                            {state.bingo.winners.length > 1 && (
+                                <p className="mt-2 text-center text-[clamp(0.9rem,1.6vw,1.3rem)]">
+                                    {state.bingo.winners
+                                        .slice(1, 6)
+                                        .map((w) => `${w.position}. ${w.name}`)
+                                        .join("   ·   ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* ── Question / Locked / Reveal ───────────────────────────── */}
-            {round && round.status !== "pending" && question && (
+            {round?.type === "trivia" && round.status !== "pending" && question && (
                 <div className="flex flex-1 flex-col gap-[clamp(1rem,3vh,2.5rem)]">
                     {round.status === "active" && (
                         <div className="space-y-3">

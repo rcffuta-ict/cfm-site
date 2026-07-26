@@ -4,11 +4,13 @@ import { getCfmEvent } from "@/src/lib/event";
 import {
     DEFAULT_ROUND_CONFIG,
     type GameState,
+    type PublicBingo,
     type PublicQuestion,
     type PublicRound,
     type RoundConfig,
     type SessionStatus,
 } from "@/src/lib/games/types";
+import { parseBingoConfig } from "@/src/lib/games/bingo";
 
 /**
  * Reading the live game state.
@@ -29,6 +31,7 @@ const EMPTY: Omit<GameState, "serverNow"> = {
     session: null,
     round: null,
     question: null,
+    bingo: null,
     correctIndex: null,
     version: "idle",
 };
@@ -108,6 +111,7 @@ export async function loadGameState(
 
     let question: PublicQuestion | null = null;
     let correctIndex: number | null = null;
+    let bingo: PublicBingo | null = null;
 
     if (round.type === "trivia") {
         const { data: q } = await supabase
@@ -135,10 +139,52 @@ export async function loadGameState(
         }
     }
 
+    if (round.type === "bingo") {
+        const config = parseBingoConfig(roundRow.config);
+
+        const { data: calls } = await supabase
+            .from("bingo_calls")
+            .select("item_index, call_order")
+            .eq("round_id", round.id)
+            .order("call_order", { ascending: false });
+
+        const { data: wins } = await supabase
+            .from("bingo_wins")
+            .select("profile_id, pattern, position")
+            .eq("round_id", round.id)
+            .order("position", { ascending: true });
+
+        // Only the visible handful of winners need names.
+        const winnerIds = (wins ?? []).slice(0, 10).map((w) => w.profile_id);
+        const nameById = new Map<string, string>();
+        if (winnerIds.length > 0) {
+            const { data: profiles } = await supabase
+                .from("profiles")
+                .select("id, first_name, last_name")
+                .in("id", winnerIds);
+            for (const p of profiles ?? [])
+                nameById.set(p.id, `${p.first_name} ${p.last_name}`.trim());
+        }
+
+        bingo = {
+            gridSize: config.gridSize,
+            freeCentre: config.freeCentre,
+            pattern: config.pattern,
+            items: config.items,
+            called: (calls ?? []).map((c) => c.item_index),
+            winners: (wins ?? []).slice(0, 10).map((w) => ({
+                name: nameById.get(w.profile_id) ?? "Someone",
+                pattern: w.pattern,
+                position: w.position,
+            })),
+        };
+    }
+
     return {
         session: sessionPublic,
         round,
         question,
+        bingo,
         correctIndex,
         serverNow,
         // Everything a client renders differently is folded in, so an unchanged
@@ -150,6 +196,9 @@ export async function loadGameState(
             round.endsAt ?? "-",
             question?.id ?? "-",
             correctIndex ?? "-",
+            // A new call or a new winner has to invalidate the ETag, or phones
+            // would sit on a 304 through the whole bingo round.
+            bingo ? `b${bingo.called.length}.${bingo.winners.length}` : "-",
         ].join(":"),
     };
 }

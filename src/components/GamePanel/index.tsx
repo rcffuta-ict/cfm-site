@@ -6,6 +6,7 @@ import { Card } from "@/src/components/ui/card";
 import { Chip } from "@/src/components/ui/chip";
 import { Progress } from "@/src/components/ui/progress";
 import { useGameState, useCountdown } from "@/src/hooks/useGameState";
+import BingoPanel from "@/src/components/BingoPanel";
 import { cn } from "@/src/lib/utils";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F"];
@@ -87,6 +88,10 @@ export default function GamePanel() {
             </Card>
         );
     }
+
+    // ── Bingo runs on its own surface ───────────────────────────────────
+    if (round && round.type === "bingo" && state?.bingo && round.status !== "pending")
+        return <BingoPanel round={round} bingo={state.bingo} />;
 
     // ── Nothing live ────────────────────────────────────────────────────
     if (!round || round.status === "pending" || !question) {

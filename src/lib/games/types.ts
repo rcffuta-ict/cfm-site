@@ -45,10 +45,24 @@ export interface PublicRound {
     config: RoundConfig;
 }
 
+/** What the TV and phones need to render a bingo round. */
+export interface PublicBingo {
+    gridSize: number;
+    freeCentre: boolean;
+    pattern: "line" | "full";
+    /** The full pool, so a card's indexes can be resolved to words. */
+    items: string[];
+    /** Pool indexes already announced, most recent first. */
+    called: number[];
+    /** Winners so far, in the order they claimed. */
+    winners: { name: string; pattern: string; position: number }[];
+}
+
 export interface GameState {
     session: { id: string; title: string; status: SessionStatus } | null;
     round: PublicRound | null;
     question: PublicQuestion | null;
+    bingo: PublicBingo | null;
     /**
      * Only ever populated once the round is revealed — while a round is live
      * this is null, so the answer can't be read out of the poll response.

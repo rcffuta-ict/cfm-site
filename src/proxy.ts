@@ -34,6 +34,7 @@ export function proxy(request: NextRequest) {
         pathname.startsWith("/play") ||
         pathname.startsWith("/api/games/join") ||
         pathname.startsWith("/api/games/answer") ||
+        pathname.startsWith("/api/games/bingo") ||
         pathname.startsWith("/api/oracle");
 
     // Unauthenticated user hitting a protected route → send to login.
